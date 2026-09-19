@@ -17,8 +17,6 @@ The MATLAB code reproduces the numerical experiments in Sections 6.1–6.2:
 the prescribed two-step recurrence, finite interpolation, and DFP/BFGS
 comparisons with Wolfe line searches.
 
-[中文说明](README_zh.md)
-
 ## Repository contents
 
 | Paper part | Implementation | Output |
