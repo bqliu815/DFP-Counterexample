@@ -1,0 +1,25 @@
+# Generated numerical output
+/results/
+
+# MATLAB session, editor, and crash files
+*.asv
+*.m~
+*.autosave
+matlab_crash_dump.*
+java.log.*
+hs_err_pid*.log
+core.*
+slprj/
+
+# Operating system and local editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local environment and credentials
+.env
+.env.*
+
+# Release archives do not belong in the source repository
+*.zip
