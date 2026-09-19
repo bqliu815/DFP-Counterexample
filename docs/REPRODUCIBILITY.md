@@ -13,7 +13,8 @@ all 14 tests, the smoke run, and the complete protocol. All 28 trajectory CSV
 files were byte-identical to the original MATLAB results. The eight exact
 certificates, all three CSV tables, and both PDF/PNG figures were also checked.
 MATLAB R2025a on macOS also passed the 14 tests, smoke run, and complete
-protocol. The GitHub Actions workflow has not yet been executed.
+protocol. The [GitHub Actions workflow](https://github.com/bqliu815/DFP-Counterexample/actions/workflows/matlab.yml)
+runs the 14 tests on MATLAB R2023a for pushes and pull requests.
 
 The complete headless Linux run used:
 
