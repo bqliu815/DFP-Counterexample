@@ -13,12 +13,12 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: matlab-actions/setup-matlab@v2
+      - uses: actions/checkout@v6
+      - uses: matlab-actions/setup-matlab@v3
         with:
           release: R2023a
           products: Statistics_and_Machine_Learning_Toolbox
-      - uses: matlab-actions/run-tests@v2
+      - uses: matlab-actions/run-tests@v3
         with:
           source-folder: src
           select-by-folder: tests

@@ -13,7 +13,7 @@ authors: &id001
   given-names: Yaxiang
 - family-names: Zhang
   given-names: Liwei
-version: 0.1.3
+version: 0.1.4
 repository-code: https://github.com/bqliu815/DFP-Counterexample
 license: MIT
 keywords:

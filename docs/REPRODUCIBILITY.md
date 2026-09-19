@@ -8,7 +8,7 @@ All computations use double precision and analytic gradients. DFP and BFGS
 are implemented directly, with symmetrization after each update and no
 damping, restart, or matrix reset.
 
-The release was validated on 19 September 2026. MATLAB R2023a on Linux passed
+The numerical protocol was validated on 19 September 2026. MATLAB R2023a on Linux passed
 all 14 tests, the smoke run, and the complete protocol. All 28 trajectory CSV
 files were byte-identical to the original MATLAB results. The eight exact
 certificates, all three CSV tables, and both PDF/PNG figures were also checked.
@@ -22,11 +22,6 @@ The complete headless Linux run used:
 env -u DISPLAY LC_ALL=C matlab -softwareopengl -nodisplay -singleCompThread \
   -batch "run_experiments('all')"
 ```
-
-Some preliminary runs on this Linux installation stalled during MATLAB
-startup or shutdown. The completed full run exited normally; the final test
-run appended `quit(0,'force')` after the checks. The entry point initializes
-the symbolic engine before the numerical stage in `all` mode.
 
 Run commands from the repository root. The `all` mode performs `full`,
 `certify`, `verify`, and `figures` in that order.
@@ -157,6 +152,7 @@ The `test`, `smoke`, and `probe` modes default to their own directories.
 | `tables/Table1.csv`, `tables/Table2.csv`, `tables/Departure.csv` | Paper tables and departure indices |
 | `figures/Fig1.pdf`, `figures/Fig2.pdf` | Vector figures; PNG copies are also exported |
 
+Paired entries in Table 1 are exported as separate numeric rows.
 Parameter tags replace the decimal point by `p`, as in `0p0025`.
 Each `result.trace` row records an accepted step: iterate, gradient norm,
 step length, support distances, Wolfe ratios, curvature, secant residual,
