@@ -1,5 +1,6 @@
 # Generated numerical output
 /results/
+/reference/
 
 # MATLAB session, editor, and crash files
 *.asv

@@ -19,17 +19,13 @@ comparisons with Wolfe line searches.
 
 ## Repository contents
 
-| Paper part | Implementation | Output |
-| --- | --- | --- |
-| Section 6.1: geometry and asymptotics | `DFPExperiment.oracle`, `geometrySummary` | Figure 1(a) and Table 1 |
-| Section 6.1: finite-function BFGS trajectory | `DFPExperiment.finite`, `run` | Figure 1(b) |
-| Section 6.2: finite-function comparisons | `DFPExperiment.finite`, `run`, `wolfe_search` | Figure 2, Table 2, departure and line-search diagnostics |
-| Finite-function Hessian bounds | `experiments/certify_bounds.m` | Eight exact rational certificates |
-
-The two files in `src/` implement the recurrence, interpolation, updates,
-and line searches. `run_experiments.m` calls the fixed paper protocol in
-`experiments/`, which also exports the tables and plots. Tests are in `tests/`;
-compact reference results and manuscript figures are in `reference/`.
+| Path | Contents |
+| --- | --- |
+| `src/DFPExperiment.m` | DFP/BFGS updates, the prescribed recurrence, and finite interpolation |
+| `src/wolfe_search.m` | Weak and strong Wolfe line searches |
+| `run_experiments.m` | Entry point for tests and paper experiments |
+| `experiments/` | Experiment protocols, finite-function certification, and table and figure generation |
+| `tests/` | Tests for the updates, line searches, interpolation, and entry point |
 
 ## Installation
 
@@ -80,10 +76,8 @@ matlab -singleCompThread -batch "run_experiments('all')"
 Results are written to `results/paper/`, with `raw/`, `tables/`, and `figures/`
 subdirectories. A second argument selects a different output directory.
 See [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) for individual stages,
-experimental parameters, output files, and the current verification status.
-The 14 tests and complete protocol have been run in MATLAB R2023a, including
-the exact certificates and table and figure exports. The 28 trajectory CSV
-files agree byte for byte with the reference MATLAB results.
+experimental parameters, and generated output files. Results are generated
+locally and excluded from version control.
 
 ## Citation
 

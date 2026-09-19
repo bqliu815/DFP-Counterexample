@@ -8,13 +8,8 @@ All computations use double precision and analytic gradients. DFP and BFGS
 are implemented directly, with symmetrization after each update and no
 damping, restart, or matrix reset.
 
-The numerical protocol was validated on 19 September 2026. MATLAB R2023a on Linux passed
-all 14 tests, the smoke run, and the complete protocol. All 28 trajectory CSV
-files were byte-identical to the original MATLAB results. The eight exact
-certificates, all three CSV tables, and both PDF/PNG figures were also checked.
-MATLAB R2025a on macOS also passed the 14 tests, smoke run, and complete
-protocol. The [GitHub Actions workflow](https://github.com/bqliu815/DFP-Counterexample/actions/workflows/matlab.yml)
-runs the 14 tests on MATLAB R2023a for pushes and pull requests.
+The [GitHub Actions workflow](https://github.com/bqliu815/DFP-Counterexample/actions/workflows/matlab.yml)
+runs the test suite on MATLAB R2023a for pushes and pull requests.
 
 The complete headless Linux run used:
 
@@ -172,8 +167,6 @@ obj.tree = KDTreeSearcher(obj.points);
 ```
 
 `obj.band` is a floating-point estimate; exact bounds are in the certificate
-file. [Reference summaries](../reference/expected_results.json) and
-[Figure 1](../reference/figures/Fig1.pdf) / [Figure 2](../reference/figures/Fig2.pdf)
-are supplied for comparison, not as computational inputs. Complete
-trajectories are regenerated and excluded from version control. Finite-step
-departure indices can vary with MATLAB release and floating-point behavior.
+file. All data, tables, and figures are generated locally and excluded from
+version control. Finite-step departure indices can vary with MATLAB release
+and floating-point behavior.
