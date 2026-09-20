@@ -57,7 +57,12 @@ g0 = x0 = [1; p0*r0]
 The two legs use `(mu, tau) = (epsilon, 2/3)` and `(-2*epsilon, 1/3)`.
 The eigenframe is recomputed before each leg. These steps follow the
 prescribed recurrence; no line search is performed in this calculation.
-The computed steps are checked against the Wolfe inequalities.
+The Armijo diagnostic in Table 1 uses the surrogate endpoint values
+`F_k^(N) = 0.5*norm(x_k - C_(2N))^2`, where `N = 100000` and `C_(2N)` is
+the terminal reference center. The strong-curvature check uses the prescribed
+gradients and steps. Both diagnostics use `c1 = 0.25`, `c2 = 0.75`, and a
+tolerance of `1e-12`. The Wolfe conditions for the infinite construction
+are proved analytically in Section 4.3 of the paper.
 
 Figure 1(a) shows all 200,000 steps. Its dashed circle uses the last reference
 center `C_k = x_k - g_k` and the radius estimate `G_N*exp(-13*epsilon_N/3)`.
