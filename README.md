@@ -31,8 +31,7 @@ comparisons with Wolfe line searches.
 
 The reference experiments use MATLAB R2023a with the Statistics and Machine
 Learning Toolbox. The Symbolic Math Toolbox is also required for the exact
-certificates (`certify` and `all`). The optimization routines are implemented
-directly; neither Python nor the Optimization Toolbox is required.
+certificates (`certify` and `all`).
 
 Download the repository or clone it:
 
@@ -109,9 +108,3 @@ Machine-readable citation metadata is provided in [CITATION.cff](CITATION.cff).
 Original code is released under the [MIT License](LICENSE).
 The SciPy adaptations in `src/wolfe_search.m` retain the BSD 3-Clause license;
 see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution.
-
-## Questions and contributions
-
-For questions or bug reports, open an issue with the MATLAB release, command,
-and full error message. Pull requests are welcome; describe the change and
-run `run_experiments('test')` and `run_experiments('smoke')` before submitting.
