@@ -89,6 +89,14 @@ planar convergence under a locally Lipschitz Hessian. The
 [formalization README](https://github.com/optpku/ReasBook/blob/v4.32.0/ReasBook/Papers/DFP_wolfe_local/README.md)
 describes the scope and lists the main theorem declarations.
 
+The theorem map is shown below. Click the image to open the interactive
+paper view.
+
+[![Theorem dependency map for the DFP paper](docs/assets/dfp_theorem_map.png)](https://optpku.github.io/ReasBook/theorem-maps/papers/dfp_wolfe_local/?view=paper)
+
+Interactive theorem map:
+https://optpku.github.io/ReasBook/theorem-maps/papers/dfp_wolfe_local/?view=paper
+
 The project uses Lean 4.32.0 and mathlib 4.32.0. With Lean's `elan` toolchain
 manager installed, the following commands check the source snapshot used
 here:
