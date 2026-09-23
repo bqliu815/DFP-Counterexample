@@ -20,6 +20,12 @@ comparisons with Wolfe line searches.
 Lean formalization:
 https://github.com/optpku/ReasBook/tree/v4.32.0/ReasBook/Papers/DFP_wolfe_local/
 
+Project on ReasLab:
+https://reaslab.io/share/fqxVBj9GRaqFajkYxVtyXQR1210a9.MTc.YWxs
+
+The LaTeX manuscript, MATLAB code, and Lean formalization will be added
+to this project.
+
 ## Repository contents
 
 | Path | Contents |
