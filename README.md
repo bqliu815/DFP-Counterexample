@@ -13,9 +13,10 @@ convergence under the standard weak Wolfe conditions for strongly convex
 $C^2$ objective functions in two dimensions when the Hessian is locally
 Lipschitz continuous near the initial level set.
 
-The MATLAB code reproduces the numerical experiments in Sections 6.1–6.2:
-the prescribed two-step recurrence, finite interpolation, and DFP/BFGS
-comparisons using MATLAB's `fminunc`.
+The MATLAB code reproduces the numerical experiments in Sections 6.1–6.2.
+The prescribed two-step recurrence is evaluated directly. The DFP and BFGS
+comparisons use MATLAB's `fminunc` on fixed finite objective functions
+formed by local interpolation.
 
 Lean formalization:
 https://github.com/optpku/ReasBook/tree/v4.32.0/ReasBook/Papers/DFP_wolfe_local/
@@ -30,7 +31,7 @@ https://reaslab.io/share/fqxVBj9GRaqFajkYxVtyXQR1210a9.MTc.YWxs
 | `src/DFPExperiment.m` | Prescribed DFP recurrence and finite interpolation |
 | `src/run_fminunc.m` | DFP/BFGS comparisons with MATLAB's built-in solver |
 | `run_experiments.m` | Entry point for tests and paper experiments |
-| `experiments/` | Experiment protocols, finite-function certification, and table and figure generation |
+| `experiments/` | Experiment settings, checks of Hessian bounds, and table and figure generation |
 | `tests/` | Tests for the recurrence, interpolation, solver interface, and entry point |
 
 ## Installation
@@ -64,13 +65,13 @@ bfgs.summary
 ```
 
 Both methods use the same linear change of variables to retain the initial
-search direction associated with the matrix from the construction.
+search direction determined by the prescribed inverse Hessian approximation.
 MATLAB's internal line search and update safeguards are retained.
 
 ## Reproducing the numerical experiments
 
-The complete protocol generates the data, checks the finite-function bounds
-and recorded steps, then exports the tables and figures:
+The complete run generates the data, checks the Hessian bounds and recorded
+trajectories, and exports the tables and figures:
 
 ```matlab
 run_experiments('all');
@@ -90,9 +91,9 @@ locally and excluded from version control.
 
 ## Formal verification
 
-The Lean 4 development covers the nonconvergence construction, its Hölder
-regularity, the higher-dimensional and identity-initialized extensions, and
-planar convergence under a locally Lipschitz Hessian. The
+The Lean 4 formalization covers the nonconvergence construction, its Hölder
+regularity, extensions to higher dimensions and identity initialization, and
+planar convergence with a locally Lipschitz continuous Hessian. The
 [formalization README](https://github.com/optpku/ReasBook/blob/v4.32.0/ReasBook/Papers/DFP_wolfe_local/README.md)
 describes the scope and lists the main theorem declarations.
 

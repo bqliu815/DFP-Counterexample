@@ -54,9 +54,10 @@ H0 = diag([h0*p0*r0^2, h0])
 g0 = x0 = [1; p0*r0]
 ```
 
-The two legs use `(mu, tau) = (epsilon, 2/3)` and `(-2*epsilon, 1/3)`.
-The eigenframe is recomputed before each leg. The explicit DFP update in
-`DFPExperiment.m` is used only for this prescribed recurrence.
+The two steps in each cycle use `(mu, tau) = (epsilon, 2/3)` and
+`(-2*epsilon, 1/3)`. The eigenbasis is recomputed before each step.
+The explicit DFP update in `DFPExperiment.m` is used only for this
+prescribed recurrence.
 
 The dashed circle has center `C_(2N)`, with `N = 100000`, and radius
 `G_N*exp(-13*epsilon_N/3)`. Table 1 reports medians over the last 10,000 cycles
@@ -68,21 +69,24 @@ The infinite construction's Wolfe conditions are proved in Section 4.3.
 ## Finite objective functions
 
 `DFPExperiment.finite(epsilon0)` forms a fixed finite objective function.
-With `B = max(100, ceil(0.5*epsilon0^(-1.5)))`, the interpolation prefix has
-`2*B + 4` steps and includes the initial point. The quadratic term is centered
-at the last reference center. Support radii are 0.24 times the nearest-neighbor
+With `B = max(100, ceil(0.5*epsilon0^(-1.5)))`, the interpolation points are
+the initial point and the endpoints of `2*B + 4` prescribed steps.
+The quadratic term is centered at the last reference center. Support radii
+are 0.24 times the nearest-neighbor
 distances. The cutoff is one for `t <= 1/3`, zero for `t >= 1`, and
 `1 - 10*z^3 + 15*z^4 - 6*z^5` in between, where `z = (3*t - 1)/2`.
 The function and its analytic gradient are evaluated by `valueGrad`.
 
-Figure 1(b) uses the 205-point interpolant at `epsilon0 = 0.03`, for which
-no global-convexity certificate is claimed. Figure 2 uses `epsilon0 = 0.0025`
+Figure 1(b) uses the 205-point interpolant at `epsilon0 = 0.03`.
+The available Hessian bound does not certify global convexity in this case.
+Figure 2 uses `epsilon0 = 0.0025`
 and 8,005 interpolation points. Table 2 uses `epsilon0 = 0.001, 0.002, 0.0025`.
 The latter three finite functions have certified global Hessian bounds.
 
 ## fminunc comparisons
 
-All finite-function optimization runs call `fminunc` with
+Each finite objective function is fixed before optimization starts;
+`fminunc` generates its own iterates and step lengths. All runs use
 `Algorithm='quasi-newton'`, an analytic gradient, and `HessUpdate='dfp'` or
 `'bfgs'`. Both methods have the same budget of 5,000 iterations and 100,000
 solver function evaluations. An output function stops when the gradient
@@ -100,20 +104,17 @@ original coordinates.
 The same transform is used for DFP and BFGS. MATLAB's built-in line search,
 first-update scalar rescaling, and curvature safeguards are left unchanged.
 In R2023a, the internal line-search parameters are `rho = 0.01` and
-`sigma = 0.9`. These runs measure the built-in solver, while Figure 1(a)
-measures the prescribed recurrence.
-
-All plotted gradient norms and stated Hessian bounds refer to the original
-coordinates. The finite functions have Lipschitz Hessians; these experiments
-are not numerical proofs of nonconvergence of the infinite construction.
+`sigma = 0.9`. These runs evaluate MATLAB's DFP and BFGS implementations,
+while Figure 1(a) follows the prescribed recurrence. All plotted gradient
+norms and stated Hessian bounds refer to the original coordinates.
 
 ## Certificates, checks, and outputs
 
 `certify_bounds` interprets the stored binary64 coefficients as exact dyadic
 rationals. It verifies support separation and global Hessian bounds for the
 three small-parameter functions, checking both stored corrections and exact
-differences of stored centers. The certificates concern the finite functions,
-not floating-point trajectories or the infinite construction.
+differences of stored centers. The certificates apply to the fixed finite
+objective functions defined by these data.
 
 `verify_results` independently reevaluates all recorded iterates from the
 seven optimization runs, checks final gradients and stopping classifications,
