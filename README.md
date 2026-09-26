@@ -170,5 +170,3 @@ Machine-readable citation metadata is provided in [CITATION.cff](CITATION.cff).
 ## License
 
 Code is released under the [MIT License](LICENSE).
-Third-party notices for earlier releases are retained in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
