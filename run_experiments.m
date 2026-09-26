@@ -52,6 +52,7 @@ function outDir = run_experiments(mode, outDir)
     end
 
     if any(strcmp(mode, {'smoke', 'full', 'all', 'test'}))
+        requireToolbox('Optimization_Toolbox', 'fminunc', 'Optimization Toolbox');
         requireToolbox('Statistics_Toolbox', 'KDTreeSearcher', ...
                        'Statistics and Machine Learning Toolbox');
     end

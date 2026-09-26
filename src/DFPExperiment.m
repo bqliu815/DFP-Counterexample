@@ -1,25 +1,15 @@
 classdef DFPExperiment
-    % DFP recurrence, finite objective functions, and classical DFP/BFGS in 2D.
+    % Prescribed DFP recurrence and finite objective functions in two dimensions.
     % SPDX-License-Identifier: MIT
     methods (Static)
 
-        function H = update(H, s, y, method)
-            % UPDATE Apply one classical inverse DFP or BFGS update.
-            % H is 2-by-2; s and y are 2-by-1 with s'*y > 0.
-            % Symmetrization removes floating-point asymmetry only.
+        function H = update(H, s, y)
+            % UPDATE Classical inverse DFP update for the prescribed recurrence.
             sy = s' * y;
-            assert(isfinite(sy) && sy > 0, 'Nonpositive curvature');
-            if strcmp(method, 'dfp')
-                Hy = H * y;
-                yHy = y' * Hy;
-                assert(yHy > 0, 'Nonpositive DFP denominator');
-                H = H - (Hy * Hy') / yHy + (s * s') / sy;
-            elseif strcmp(method, 'bfgs')
-                V = eye(2) - (s * y') / sy;
-                H = V * H * V' + (s * s') / sy;
-            else
-                error('dfp:UnknownMethod', 'Method must be dfp or bfgs.');
-            end
+            Hy = H * y;
+            yHy = y' * Hy;
+            assert(isfinite(sy) && sy > 0 && yHy > 0, 'Nonpositive curvature');
+            H = H - (Hy * Hy') / yHy + (s * s') / sy;
             H = (H + H') / 2;
         end
 
@@ -95,7 +85,7 @@ classdef DFPExperiment
                     q = -g' * s;
                     gp = g + y;
                     xp = x + s;
-                    Hp = DFPExperiment.update(H, s, y, 'dfp');
+                    Hp = DFPExperiment.update(H, s, y);
                     k = k + 1;
                     o.alpha(k) = alpha;
                     o.q(k) = q;
@@ -178,115 +168,6 @@ classdef DFPExperiment
             g = g + phi * a;
             if dist > 0 && dp ~= 0
                 g = g + av * dp * v / (rho * dist);
-            end
-        end
-
-        function result = run(obj, o, method, policy, maxit, stopAtSupport)
-            % RUN Apply classical DFP/BFGS to a fixed finite objective function.
-            % Initial x and H come from o. Accepted steps and every line-search trial
-            % are retained. The gradient tolerance is 1e-10, as in the paper.
-            if nargin < 6
-                stopAtSupport = false;
-            end
-            x = o.x(1, :)';
-            H = o.h0;
-            [f, g] = DFPExperiment.valueGrad(obj, x);
-            prev = NaN;
-            columns = {'iteration', 'alpha', 'function_value', 'gradient_norm', 'target_ratio', ...
-                       'nearest_ratio', 'armijo_ratio', 'strong_ratio', 'weak_margin', 'curvature', ...
-                       'secant_residual', 'metric_min', 'metric_max', 'evaluations', 'x1', 'x2', 'first_trial'};
-            rows = zeros(maxit, numel(columns));
-            events = cell(maxit, 1);
-            status = 'iteration_limit';
-            kdone = 0;
-            for k = 1:maxit
-                if norm(g) <= 1e-10
-                    status = 'gradient_tolerance';
-                    break
-                end
-                d = -H * g;
-                dg = g' * d;
-                if ~isfinite(dg) || dg >= 0
-                    status = 'non_descent';
-                    break
-                end
-                evaluator = @(z)DFPExperiment.valueGrad(obj, z);
-                try
-                    [alpha, ~, ~, trials] = wolfe_search(evaluator, x, f, g, d, policy, prev);
-                catch err
-                    status = ['line_search_failure: ', err.message];
-                    break
-                end
-                s = alpha * d;
-                xp = x + s;
-                [fp, gp, idx, dist] = DFPExperiment.valueGrad(obj, xp);
-                y = gp - g;
-                if s' * y <= 0
-                    status = 'nonpositive_curvature';
-                    break
-                end
-                Hp = DFPExperiment.update(H, s, y, method);
-                ev = eig(Hp);
-                if min(ev) <= 0 || any(~isfinite(ev))
-                    status = 'nonpositive_metric';
-                    break
-                end
-                target = min(k + 1, size(o.x, 1));
-                er = norm(xp - o.x(target, :)') / obj.radii(target);
-                rows(k, :) = [k, alpha, fp, norm(gp), er, dist / obj.radii(idx), ...
-                              (f - fp) / (-alpha * dg), abs(gp' * d) / abs(dg), (gp' * d - .75 * dg) / abs(dg), ...
-                              s' * y, norm(Hp * y - s) / norm(s), min(ev), max(ev), size(trials, 1), xp', trials(1, 1)];
-                events{k} = trials;
-                kdone = k;
-                prev = f;
-                x = xp;
-                f = fp;
-                g = gp;
-                H = Hp;
-                if norm(g) <= 1e-10
-                    status = 'gradient_tolerance';
-                    break
-                end
-                if stopAtSupport && er > 1
-                    status = 'support_exit';
-                    break
-                end
-            end
-            rows = rows(1:kdone, :);
-            result.trace = array2table(rows, 'VariableNames', columns);
-            result.trials = events(1:kdone);
-            result.x0 = o.x(1, :);
-            result.h0 = o.h0;
-            result.hfinal = H;
-            summary = struct('epsilon0', obj.epsilon0, 'method', method, 'policy', policy, ...
-                             'status', status, 'iterations', kdone, ...
-                             'prefix_steps', obj.steps, 'hessian_band', obj.band, ...
-                             'initial_gradient_norm', norm(o.g(1, :)), 'final_gradient_norm', norm(g));
-            if kdone > 0
-                summary.plateau_exit = DFPExperiment.first(rows(:, 5) > 1 / 3);
-                summary.support_exit = DFPExperiment.first(rows(:, 5) > 1);
-                summary.first_nonunit = DFPExperiment.first(abs(rows(:, 2) - 1) > 1e-13);
-                summary.armijo_failures = sum(rows(:, 7) < .25 - 1e-11);
-                summary.strong_failures = sum(rows(:, 8) > .75 + 1e-11);
-                summary.weak_failures = sum(rows(:, 9) < -1e-11);
-                summary.min_armijo_ratio = min(rows(:, 7));
-                summary.max_strong_ratio = max(rows(:, 8));
-                summary.max_secant_residual = max(rows(:, 11));
-                summary.min_metric_eigenvalue = min(rows(:, 12));
-                summary.min_curvature = min(rows(:, 10));
-                summary.alpha_range = [min(rows(:, 2)), max(rows(:, 2))];
-                summary.third_alpha = NaN;
-                if kdone >= 3
-                    summary.third_alpha = rows(3, 2);
-                end
-            end
-            result.summary = summary;
-        end
-
-        function j = first(mask)
-            j = find(mask, 1);
-            if isempty(j)
-                j = NaN;
             end
         end
 

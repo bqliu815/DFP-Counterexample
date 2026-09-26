@@ -18,17 +18,18 @@ function make_figures(outDir)
     orange = [.725, .302, 0];
     defaultNames = {'defaultAxesFontName', 'defaultTextFontName', ...
                     'defaultAxesFontSize', 'defaultTextFontSize', 'defaultAxesTickLabelInterpreter', ...
-                    'defaultTextInterpreter', 'defaultLegendInterpreter'};
+                    'defaultTextInterpreter', 'defaultLegendInterpreter', 'defaultTextColor'};
     oldDefaults = get(groot, defaultNames);
     restoreDefaults = onCleanup(@()set(groot, defaultNames, oldDefaults));
     set(groot, 'defaultAxesFontName', 'Nimbus Sans', 'defaultTextFontName', 'Nimbus Sans', ...
         'defaultAxesFontSize', 8, 'defaultTextFontSize', 8, ...
         'defaultAxesTickLabelInterpreter', 'latex', 'defaultTextInterpreter', 'latex', ...
-        'defaultLegendInterpreter', 'latex');
+        'defaultLegendInterpreter', 'latex', 'defaultTextColor', 'k');
     fig = figure('Visible', 'off', 'Color', 'w', 'Units', 'inches', 'Position', [0, 0, 4.75, 2.55], ...
                  'PaperPositionMode', 'auto', 'Renderer', 'painters');
     for j = 1:2
         ax = axes(fig, 'Position', [.105 + (j - 1) * .47, .19, .395, .70]);
+        set(ax, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'GridColor', [.5, .5, .5]);
         hold(ax, 'on');
         if j == 1
             h_method = plot(ax, o.x(:, 1), o.x(:, 2), 'Color', blue, 'LineWidth', .32, 'DisplayName', 'DFP');
@@ -45,13 +46,14 @@ function make_figures(outDir)
                 'Color', orange, 'LineWidth', 1, 'DisplayName', 'Circle estimate');
             h_method = plot(ax, xx(:, 1), xx(:, 2), '-o', 'Color', red, ...
                 'LineWidth', .85, 'MarkerFaceColor', red, 'MarkerSize', 2.3, ...
-                'DisplayName', 'BFGS');
+                'DisplayName', 'BFGS (fminunc)');
             plot(ax, xx(1, 1), xx(1, 2), 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 3, 'HandleVisibility', 'off');
             plot(ax, xx(end, 1), xx(end, 2), 'k*', 'MarkerSize', 6, 'HandleVisibility', 'off');
             title(ax, sprintf('(b) BFGS: %d iterations', height(b.trace)), 'FontWeight', 'normal', 'FontSize', 8);
             ax.YTickLabel = {};
         end
         lg = legend(ax, [h_method, h_circle], 'Location', 'northeast', 'FontSize', 7, 'Box', 'on');
+        set(lg, 'Color', 'w', 'TextColor', 'k', 'EdgeColor', [.3, .3, .3]);
         lg.ItemTokenSize = [12, 8];
         axis(ax, 'equal');
         xlim(ax, [-1.07, 1.07]);
@@ -76,19 +78,21 @@ function make_figures(outDir)
     fig = figure('Visible', 'off', 'Color', 'w', 'Units', 'inches', 'Position', [0, 0, 3.6, 2.5], ...
                  'PaperPositionMode', 'auto', 'Renderer', 'painters');
     ax = axes(fig, 'Position', [.19, .25, .71, .69]);
+    set(ax, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'GridColor', [.5, .5, .5]);
     hold(ax, 'on');
     plot(ax, d.trace.iteration, d.trace.gradient_norm, 'Color', blue, 'LineWidth', 1, 'DisplayName', 'DFP');
     plot(ax, b.trace.iteration, b.trace.gradient_norm, '--o', 'Color', red, 'LineWidth', 1, ...
          'MarkerSize', 3, 'MarkerIndices', 1:4:height(b.trace), 'MarkerFaceColor', red, 'DisplayName', 'BFGS');
-    plot(ax, [1, 5000], [1e-10, 1e-10], ':', 'Color', [.3, .3, .3], 'LineWidth', .8, 'DisplayName', 'Tolerance');
-    set(ax, 'XScale', 'log', 'YScale', 'log', 'FontSize', 10, 'XLim', [1, 5000], 'YLim', [1e-11, 1.5], ...
+    plot(ax, [1, max([d.summary.iterations, b.summary.iterations])], [1e-10, 1e-10], ':', 'Color', [.3, .3, .3], 'LineWidth', .8, 'DisplayName', 'Tolerance');
+    set(ax, 'XScale', 'log', 'YScale', 'log', 'FontSize', 10, 'XLim', [1, 5000], 'YLim', [1e-13, 1.5], ...
         'XTick', [1, 10, 100, 1000, 5000], 'XTickLabel', {'$1$', '$10$', '$100$', '$1{,}000$', '$5{,}000$'}, ...
-        'YTick', 10.^(-10:2:0), 'XMinorGrid', 'off', 'YMinorGrid', 'off');
+        'YTick', 10.^(-12:2:0), 'XMinorGrid', 'off', 'YMinorGrid', 'off');
     ax.XTickLabelRotation = 0;
-    ax.YTickLabel = compose('$10^{%d}$', -10:2:0);
+    ax.YTickLabel = compose('$10^{%d}$', -12:2:0);
     xlabel(ax, 'Iteration $k$', 'FontSize', 10);
     ylabel(ax, '$\|g_k\|_2$', 'FontSize', 10, 'Interpreter', 'latex');
-    legend(ax, 'Location', 'southeast', 'FontSize', 9, 'Box', 'on');
+    lg = legend(ax, 'Location', 'northeast', 'FontSize', 9, 'Box', 'on');
+    set(lg, 'Color', 'w', 'TextColor', 'k', 'EdgeColor', [.3, .3, .3]);
     grid(ax, 'on');
     box(ax, 'on');
     ax.GridAlpha = .18;

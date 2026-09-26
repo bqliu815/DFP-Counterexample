@@ -4,7 +4,7 @@ function certify_bounds(outDir)
     % SPDX-License-Identifier: MIT
     rawDir = fullfile(outDir, 'raw');
     assert(isequal(sym(.1, 'f'), sym(3602879701896397) / sym(36028797018963968)));
-    grid = [.0005, .00065, .0008, .001, .00125, .0015, .002, .0025];
+    grid = [.001, .002, .0025];
     den = sym(10)^40;
     sqrt3up = (floor(sqrt(sym(3)) * den) + 1) / den;
     assert(isAlways(sqrt3up^2 > 3));

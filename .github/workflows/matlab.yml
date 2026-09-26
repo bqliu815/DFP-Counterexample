@@ -17,7 +17,7 @@ jobs:
       - uses: matlab-actions/setup-matlab@v3
         with:
           release: R2023a
-          products: Statistics_and_Machine_Learning_Toolbox
+          products: Optimization_Toolbox Statistics_and_Machine_Learning_Toolbox
       - uses: matlab-actions/run-tests@v3
         with:
           source-folder: src

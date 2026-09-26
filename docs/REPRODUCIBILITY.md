@@ -2,49 +2,50 @@
 
 ## Environment and commands
 
-The reference runs used MATLAB R2023a on an Intel Xeon Gold 6326 (2.90 GHz),
+The reference runs use MATLAB R2023a on an Intel Xeon Gold 6326 (2.90 GHz),
 Rocky Linux 8.6, one computational thread, and 4 GiB allocated memory.
-All computations use double precision and analytic gradients. DFP and BFGS
-are implemented directly, with symmetrization after each update and no
-damping, restart, or matrix reset.
+The stored R2023a trajectories were checked and plotted with MATLAB R2025a
+on macOS; the per-stage environment records identify these releases.
+Optimization Toolbox and Statistics and Machine Learning Toolbox are required
+for the experiments and tests. Symbolic Math Toolbox is required for the
+exact finite-function certificates.
 
-The [GitHub Actions workflow](https://github.com/bqliu815/DFP-Counterexample/actions/workflows/matlab.yml)
-runs the test suite on MATLAB R2023a for pushes and pull requests.
-
-The complete headless Linux run used:
-
-```sh
-env -u DISPLAY LC_ALL=C matlab -softwareopengl -nodisplay -singleCompThread \
-  -batch "run_experiments('all')"
+```matlab
+run_experiments('test');
+run_experiments('all');
 ```
 
-Run commands from the repository root. The `all` mode performs `full`,
-`certify`, `verify`, and `figures` in that order.
+`all` runs `full`, `certify`, `verify`, and `figures` in order. A second
+argument selects the output directory. Otherwise the complete protocol writes
+to `results/paper/`; `test`, `smoke`, and `probe` use separate subdirectories.
+Generated results are excluded from version control.
 
-| Command | Purpose | Required input |
+| Mode | Purpose | Required input |
 | --- | --- | --- |
-| `run_experiments('probe')` | Record the MATLAB environment | — |
-| `run_experiments('test')` | Run the test suite | — |
-| `run_experiments('smoke')` | Run a short example | — |
-| `run_experiments('full')` | Generate the paper data | — |
-| `run_experiments('certify')` | Check exact finite-function bounds | `full` output |
-| `run_experiments('verify')` | Check recorded steps and export tables | `full` and `certify` outputs |
-| `run_experiments('figures')` | Export PDF and PNG figures | `full` output |
+| `probe` | Record the MATLAB environment | — |
+| `test` | Run the test suite | — |
+| `smoke` | Run 100 prescribed cycles and a finite-function BFGS comparison | — |
+| `full` | Generate the paper trajectories and finite functions | — |
+| `certify` | Check exact Hessian bounds and support separation | `full` |
+| `verify` | Reevaluate recorded iterates and export tables | `full`, `certify` |
+| `figures` | Export vector PDF and PNG figures | `full` |
 
-The Statistics and Machine Learning Toolbox is required by `test`, `smoke`,
-and `full`; `certify` requires the Symbolic Math Toolbox. Figure export needs
-the JVM, so omit `-nojvm`. To choose an output directory, use, for example,
-`run_experiments('all', fullfile(tempdir, 'dfp-reproduction'))`. All stages
-must use the same directory; repeated runs overwrite the corresponding output.
-The caller's working directory and MATLAB search path are preserved.
-The `smoke` mode runs 100 prescribed cycles and one finite-function BFGS
-comparison. Dedicated tests for the updates, line searches, interpolation,
-and entry point are in `tests/test_core.m` and run through the `test` mode.
+For a single-threaded headless run, use:
 
-## Section 6.1: geometry and asymptotic behavior
+```sh
+matlab -nodisplay -singleCompThread -batch "run_experiments('all')"
+```
 
-`DFPExperiment.oracle(100000, 0.03)` generates 100,000 two-step cycles.
-The initial coordinates are
+Figure export requires the JVM. The numerical stage can also be run separately with `-nojvm`. The caller's working directory and
+MATLAB search path are preserved. The GitHub Actions workflow runs the tests
+on MATLAB R2023a with Optimization Toolbox and Statistics and Machine
+Learning Toolbox.
+
+## Prescribed recurrence
+
+`DFPExperiment.oracle(100000, 0.03)` generates the 100,000 two-step cycles
+in Figure 1(a). Step lengths are prescribed; this calculation does not call
+an optimization solver or perform a line search. Its initial data are
 
 ```text
 r0 = epsilon0^2
@@ -55,113 +56,97 @@ g0 = x0 = [1; p0*r0]
 ```
 
 The two legs use `(mu, tau) = (epsilon, 2/3)` and `(-2*epsilon, 1/3)`.
-The eigenframe is recomputed before each leg. These steps follow the
-prescribed recurrence; no line search is performed in this calculation.
-The Armijo diagnostic in Table 1 uses the surrogate endpoint values
-`F_k^(N) = 0.5*norm(x_k - C_(2N))^2`, where `N = 100000` and `C_(2N)` is
-the terminal reference center. The strong-curvature check uses the prescribed
-gradients and steps. Both diagnostics use `c1 = 0.25`, `c2 = 0.75`, and a
-tolerance of `1e-12`. The Wolfe conditions for the infinite construction
-are proved analytically in Section 4.3 of the paper.
+The eigenframe is recomputed before each leg. The explicit DFP update in
+`DFPExperiment.m` is used only for this prescribed recurrence.
 
-Figure 1(a) shows all 200,000 steps. Its dashed circle uses the last reference
-center `C_k = x_k - g_k` and the radius estimate `G_N*exp(-13*epsilon_N/3)`.
-Table 1 reports medians over the last 10,000 cycles and maximum residuals
-over all steps. Figure 1(b) shows BFGS on a finite interpolant with 205 points
-at `epsilon0 = 0.03`. It shares the initial point and matrix of Figure 1(a);
-the two panels do not compare algorithms on the same finite function.
-This larger-parameter interpolant is used for geometry and is outside the
-uniform-convexity certificates below.
+The dashed circle has center `C_(2N)`, with `N = 100000`, and radius
+`G_N*exp(-13*epsilon_N/3)`. Table 1 reports medians over the last 10,000 cycles
+and maximum algebraic residuals over all steps. The Armijo diagnostic uses
+surrogate endpoint values `0.5*norm(x_k - C_(2N))^2`; its counts and the
+strong-curvature counts use `(c1,c2) = (0.25,0.75)` with tolerance `1e-12`.
+The infinite construction's Wolfe conditions are proved in Section 4.3.
 
-## Section 6.2: DFP and BFGS on the same objective function
+## Finite objective functions
 
-`DFPExperiment.finite` forms a fixed finite objective function from the
-prescribed endpoints. With `B = max(100, ceil(0.5*epsilon0^(-1.5)))`, the
-interpolation prefix has `2*B + 4` steps and includes the initial point.
-The quadratic term is centered at the final reference center; support radii
-are 0.24 times the nearest-neighbor distances. The cutoff is one for
-`t <= 1/3`, zero for `t >= 1`, and
-`1 - (10*z^3 - 15*z^4 + 6*z^5)` in between, where `z = (t - 1/3)/(2/3)`.
+`DFPExperiment.finite(epsilon0)` forms a fixed finite objective function.
+With `B = max(100, ceil(0.5*epsilon0^(-1.5)))`, the interpolation prefix has
+`2*B + 4` steps and includes the initial point. The quadratic term is centered
+at the last reference center. Support radii are 0.24 times the nearest-neighbor
+distances. The cutoff is one for `t <= 1/3`, zero for `t >= 1`, and
+`1 - 10*z^3 + 15*z^4 - 6*z^5` in between, where `z = (3*t - 1)/2`.
+The function and its analytic gradient are evaluated by `valueGrad`.
 
-Figure 2 uses `epsilon0 = 0.0025` and 8,005 interpolation points. Table 2
-uses `epsilon0 = 0.001, 0.002, 0.0025`. Both methods start from the same
-point and matrix on the same finite function at each parameter. DFP has a
-5,000-iteration limit and BFGS a 1,000-iteration limit; the gradient tolerance
-is `1e-10`. Invalid curvature, a non-descent direction, or line-search failure
-terminates the run with a failure status.
+Figure 1(b) uses the 205-point interpolant at `epsilon0 = 0.03`, for which
+no global-convexity certificate is claimed. Figure 2 uses `epsilon0 = 0.0025`
+and 8,005 interpolation points. Table 2 uses `epsilon0 = 0.001, 0.002, 0.0025`.
+The latter three finite functions have certified global Hessian bounds.
 
-All line searches use `c1 = 0.25` and `c2 = 0.75`:
+## fminunc comparisons
 
-| Policy | Search | First trial |
-| --- | --- | --- |
-| `weak_unit` | Weak Wolfe bracketing and bisection | 1 |
-| `zoom_unit` | Strong Wolfe bracketing and cubic zoom | 1 |
-| `mt_unit` | Strong Wolfe, More–Thuente | 1 |
-| `zoom_history` | Strong Wolfe bracketing and cubic zoom | History-based |
-| `mt_history` | Strong Wolfe, More–Thuente | History-based |
+All finite-function optimization runs call `fminunc` with
+`Algorithm='quasi-newton'`, an analytic gradient, and `HessUpdate='dfp'` or
+`'bfgs'`. Both methods have the same budget of 5,000 iterations and 100,000
+solver function evaluations. An output function stops when the gradient
+norm in the original coordinates is at most `1e-10`, or after 5,000 iterations.
+`TolFun` and `TolX` are zero so that the common stopping test is not replaced
+by a tolerance in transformed coordinates. Native line-search termination
+can still stop a run earlier; its exit flag and message are saved separately.
+A positive exit flag alone is not counted as reaching the gradient target.
 
-The main comparison uses `zoom_unit`. The five-policy DFP diagnostic uses
-`epsilon0 = 0.001, 0.002`; weak/strong BFGS agreement is checked at all three
-Table 2 parameters. History initialization starts at 1, then uses
-`min(1, 1.01*2*(f_k - f_(k-1))/(g_k'*d_k))`, reverting to 1 for a negative
-value. Strong Wolfe trial steps are capped at 64; the weak search uses 64
-in its bracketing rule. The weak search allows 100 evaluations, cubic zoom
-allows 40 outer and 11 zoom iterations, and More–Thuente allows 99 iterations.
+Two initializations are recorded for each Table 2 parameter:
 
-The departure diagnostic runs DFP with `weak_unit` on the grid
-`0.0005, 0.00065, 0.0008, 0.001, 0.00125, 0.0015, 0.002, 0.0025`.
-At step `k`, `target_ratio` is the distance to the prescribed endpoint divided
-by its support radius. The first exceedances of `1/3` and `1` give the plateau
-and support departure indices. Runs stop at support departure or the budget
-`B`; the plateau indices are fitted by log–log least squares.
+- `prescribed`: minimize `f(x0 + L*z)` from `z = 0`, where `L*L' = H0`.
+  The gradient passed to MATLAB is `L'*grad_f`. Its initial direction maps
+  to `-H0*grad_f` in the original coordinates. This is the main comparison.
+- `identity`: use `L = I`, giving identity initialization in the original
+  coordinates. These controls are exported in `tables/Identity.csv`.
 
-These finite experiments illustrate the geometry and long DFP transients.
-The infinite nonconvergence result is proved in the paper. The uniformly
-convex finite interpolants have Lipschitz Hessians, so their long transients
-are consistent with the planar convergence theorem.
+The same transform is used for DFP and BFGS. MATLAB's built-in line search,
+first-update scalar rescaling, and curvature safeguards are left unchanged.
+In R2023a, the internal line-search parameters are `rho = 0.01` and
+`sigma = 0.9`. The adapter does not supply a custom line search, prescribe
+accepted steps, or modify MATLAB's implementation. Thus these runs measure
+the built-in solver, while Figure 1(a) measures the prescribed recurrence.
 
-## Certificates and recorded-step checks
+All plotted gradient norms and stated Hessian bounds refer to the original
+coordinates. The finite functions have Lipschitz Hessians; these experiments
+are not numerical proofs of nonconvergence of the infinite construction.
 
-`certify_bounds` treats the stored binary64 points, radii, and corrections
-as exact dyadic rationals using `sym(value, 'f')`. It checks global Hessian
-perturbation bounds and support separation for the eight small-parameter
-finite functions. Both stored corrections and exact differences of stored
-centers are checked. These certificates concern the fixed finite functions,
+## Certificates, checks, and outputs
+
+`certify_bounds` interprets the stored binary64 coefficients as exact dyadic
+rationals. It verifies support separation and global Hessian bounds for the
+three small-parameter functions, checking both stored corrections and exact
+differences of stored centers. The certificates concern the finite functions,
 not floating-point trajectories or the infinite construction.
 
-`verify_results` checks all 28 full-protocol trajectory files, the agreement
-records, and the eight certificates. The checks include finite values,
-curvature, positive definiteness, secant residuals, and Wolfe ratios. Recorded
-Wolfe ratios use a scaled tolerance of `1e-11`; the line searches use their
-direct computed inequalities when accepting steps. Successful verification
-also exports the CSV tables.
+`verify_results` independently reevaluates all recorded iterates from the
+13 optimization runs, checks final gradients and stopping classifications,
+and checks the recurrence diagnostics and three exact certificates. It does
+not require one method to outperform another or turn a native stopping flag
+into a convergence claim.
 
-## Output files
-
-Paths below are relative to `results/paper/` or the chosen output directory.
-The `test`, `smoke`, and `probe` modes default to their own directories.
-
-| Path | Contents |
+| Output | Contents |
 | --- | --- |
-| `raw/geometry.mat`, `raw/geometry.json` | Prescribed recurrence and Table 1 quantities |
-| `raw/finite_<parameter>.mat` | Finite objective coefficients and prescribed data |
-| `raw/<run>.mat`, `.csv`, `.json` | Full run, accepted-step table, and summary |
-| `raw/departure_fit.json`, `raw/agreements.json` | Departure fit and trajectory comparisons |
+| `raw/geometry.mat`, `.json` | Prescribed recurrence and Table 1 diagnostics |
+| `raw/finite_<parameter>.mat` | Fixed finite function and prescribed data |
+| `raw/<run>.mat`, `.csv`, `.json` | Recorded iterates, native output, options, and summary |
 | `raw/certificate_<parameter>.json` | Exact finite-function bounds |
-| `raw/verification.json`, `raw/environment_<mode>.json` | Recorded-step checks and software environment |
-| `tables/Table1.csv`, `tables/Table2.csv`, `tables/Departure.csv` | Paper tables and departure indices |
-| `figures/Fig1.pdf`, `figures/Fig2.pdf` | Vector figures; PNG copies are also exported |
+| `raw/verification.json` | Independent result checks |
+| `raw/environment_<mode>.json` | MATLAB release, toolboxes, and execution settings |
+| `tables/Table1.csv`, `Table2.csv`, `Identity.csv` | Recurrence and solver comparisons |
+| `figures/Fig1.pdf`, `Fig2.pdf` | Vector figures, with PNG copies |
 
-Paired entries in Table 1 are exported as separate numeric rows.
-Parameter tags replace the decimal point by `p`, as in `0p0025`.
-Each `result.trace` row records an accepted step: iterate, gradient norm,
-step length, support distances, Wolfe ratios, curvature, secant residual,
-and matrix eigenvalue bounds. `result.trials{k}` retains all trials, including
-rejections, as `[alpha, function_value, directional_derivative]`. The
-`evaluations` column counts line-search trials; it excludes the repeated
-evaluation of an accepted endpoint when recording the update.
+Each trajectory row records the iteration, point, function value, original
+gradient, line-search step, cumulative solver evaluations, and step norm.
+Armijo and curvature ratios are recorded as diagnostics, with `NaN` when the
+computed step has no positive descent denominator. `function_evaluations`
+counts MATLAB's solver calls. Evaluations used to monitor the original
+gradient are recorded separately; setup and final checks are not solver calls.
+Native `output.iterations` can include a failed final attempt, so the number
+of recorded steps is also saved.
 
-To evaluate a saved finite function, rebuild its nearest-neighbor tree:
+To evaluate a stored objective, rebuild its nearest-neighbor tree:
 
 ```matlab
 addpath('src');
@@ -171,7 +156,6 @@ obj.tree = KDTreeSearcher(obj.points);
 [f, g] = DFPExperiment.valueGrad(obj, S.o.x(1, :)');
 ```
 
-`obj.band` is a floating-point estimate; exact bounds are in the certificate
-file. All data, tables, and figures are generated locally and excluded from
-version control. Finite-step departure indices can vary with MATLAB release
-and floating-point behavior.
+`obj.band` is a floating-point estimate; the exact bounds are given in the
+certificate. Iteration counts and stopping reasons can vary with MATLAB
+release and floating-point behavior.

@@ -15,7 +15,7 @@ Lipschitz continuous near the initial level set.
 
 The MATLAB code reproduces the numerical experiments in Sections 6.1–6.2:
 the prescribed two-step recurrence, finite interpolation, and DFP/BFGS
-comparisons with Wolfe line searches.
+comparisons using MATLAB's `fminunc` with DFP and BFGS updates.
 
 Lean formalization:
 https://github.com/optpku/ReasBook/tree/v4.32.0/ReasBook/Papers/DFP_wolfe_local/
@@ -27,16 +27,16 @@ https://reaslab.io/share/fqxVBj9GRaqFajkYxVtyXQR1210a9.MTc.YWxs
 
 | Path | Contents |
 | --- | --- |
-| `src/DFPExperiment.m` | DFP/BFGS updates, the prescribed recurrence, and finite interpolation |
-| `src/wolfe_search.m` | Weak and strong Wolfe line searches |
+| `src/DFPExperiment.m` | Prescribed DFP recurrence and finite interpolation |
+| `src/run_fminunc.m` | DFP/BFGS comparisons with MATLAB's built-in solver |
 | `run_experiments.m` | Entry point for tests and paper experiments |
 | `experiments/` | Experiment protocols, finite-function certification, and table and figure generation |
-| `tests/` | Tests for the updates, line searches, interpolation, and entry point |
+| `tests/` | Tests for the recurrence, interpolation, solver interface, and entry point |
 
 ## Installation
 
-The reference experiments use MATLAB R2023a with the Statistics and Machine
-Learning Toolbox. The Symbolic Math Toolbox is also required for the exact
+The reference experiments use MATLAB R2023a with Optimization Toolbox and
+Statistics and Machine Learning Toolbox. The Symbolic Math Toolbox is also required for the exact
 certificates (`certify` and `all`).
 
 Download the repository or clone it:
@@ -57,11 +57,16 @@ To run the DFP/BFGS comparison directly:
 ```matlab
 addpath('src');
 [objective, orbit] = DFPExperiment.finite(0.0025);
-dfp = DFPExperiment.run(objective, orbit, 'dfp', 'zoom_unit', 5000);
-bfgs = DFPExperiment.run(objective, orbit, 'bfgs', 'zoom_unit', 1000);
+dfp = run_fminunc(objective, orbit, 'dfp', 5000);
+bfgs = run_fminunc(objective, orbit, 'bfgs', 5000);
 dfp.summary
 bfgs.summary
 ```
+
+The default comparison uses a linear change of variables to retain the
+prescribed initial search direction. To use identity initialization in the
+original coordinates, pass `'identity'` as the fifth argument. MATLAB's
+internal line search and update safeguards are retained in both cases.
 
 ## Reproducing the numerical experiments
 
@@ -164,6 +169,6 @@ Machine-readable citation metadata is provided in [CITATION.cff](CITATION.cff).
 
 ## License
 
-Original code is released under the [MIT License](LICENSE).
-The SciPy adaptations in `src/wolfe_search.m` retain the BSD 3-Clause license;
-see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution.
+Code is released under the [MIT License](LICENSE).
+Third-party notices for earlier releases are retained in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

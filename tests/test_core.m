@@ -1,5 +1,5 @@
 function tests = test_core
-    % TEST_CORE Check updates, line searches, interpolation, and the run entry point.
+    % TEST_CORE Check the recurrence, interpolation, fminunc adapter, and entry point.
     % SPDX-License-Identifier: MIT
     tests = functiontests(localfunctions);
 end
@@ -15,26 +15,13 @@ function teardownOnce(testCase)
 end
 
 function testDFPUpdate(testCase)
-    checkUpdate(testCase, 'dfp');
-end
-
-function testBFGSUpdate(testCase)
-    checkUpdate(testCase, 'bfgs');
-end
-
-function checkUpdate(testCase, method)
     H = [2, .2; .2, 1];
     s = [.3; -.2];
     y = [2, .1; .1, 3] * s;
-    updated = DFPExperiment.update(H, s, y, method);
+    updated = DFPExperiment.update(H, s, y);
     verifyEqual(testCase, updated, updated', 'AbsTol', 1e-15);
     verifyLessThan(testCase, norm(updated * y - s), 1e-14);
     verifyGreaterThan(testCase, min(eig(updated)), 0);
-end
-
-function testUnknownUpdateIsRejected(testCase)
-    verifyError(testCase, @()DFPExperiment.update(eye(2), [1; 0], ...
-                                                  [1; 0], 'unknown'), 'dfp:UnknownMethod');
 end
 
 function testPrescribedRecurrence(testCase)
@@ -47,54 +34,41 @@ function testPrescribedRecurrence(testCase)
     verifyGreaterThan(testCase, summary.min_metric_eigenvalue, 0);
 end
 
-function testWeakWolfeRejectedFirstTrial(testCase)
-    checkSearch(testCase, 'weak_unit', NaN);
-end
-
-function testCubicZoomRejectedFirstTrial(testCase)
-    checkSearch(testCase, 'zoom_unit', NaN);
-end
-
-function testMoreThuenteRejectedFirstTrial(testCase)
-    checkSearch(testCase, 'mt_unit', NaN);
-end
-
-function testHistoryInitialization(testCase)
-    for policy = {'zoom_history', 'mt_history'}
-        checkSearch(testCase, policy{1}, 42);
+function testFminuncOriginalCoordinates(testCase)
+    [obj, orbit] = DFPExperiment.finite(.03);
+    orbit.x(1, :) = [10, -10];
+    for method = {'dfp', 'bfgs'}
+        r = run_fminunc(obj, orbit, method{1}, 100, 'identity');
+        verifyEqual(testCase, r.summary.status, 'gradient_tolerance');
+        verifyLessThanOrEqual(testCase, r.summary.final_gradient_norm, 1e-10);
+        verifyEqual(testCase, r.h0, eye(2));
+        verifyEqual(testCase, r.summary.counted_evaluations, r.output.funcCount);
     end
 end
 
-function testUnknownSearchIsRejected(testCase)
-    evaluate = @(x)quadratic(x, eye(2));
-    x = [1; 2];
-    [f, g] = evaluate(x);
-    for policy = {'weak_typo', 'zoom_typo', 'mt_typo'}
-        verifyError(testCase, @()wolfe_search(evaluate, x, f, g, -g, policy{1}, NaN), ...
-                    'dfp:UnknownPolicy');
-    end
+function testPrescribedInitialDirectionAndBudget(testCase)
+    [obj, orbit] = DFPExperiment.finite(.03);
+    r = run_fminunc(obj, orbit, 'dfp', 3);
+    verifyEqual(testCase, r.summary.status, 'iteration_limit');
+    verifyEqual(testCase, r.summary.iterations, 3);
+    verifyEqual(testCase, r.h0, orbit.h0, 'RelTol', 1e-14);
+    [~, g0] = DFPExperiment.valueGrad(obj, orbit.x(1, :)');
+    step = [r.trace.x1(1); r.trace.x2(1)] - orbit.x(1, :)';
+    expected = -r.trace.alpha(1)*orbit.h0*g0;
+    verifyLessThan(testCase, norm(step - expected), 1e-15);
 end
 
-function checkSearch(testCase, policy, previous)
-    A = diag([2, 20]);
-    evaluate = @(x)quadratic(x, A);
-    x = [1; 2];
-    [f, g] = evaluate(x);
-    d = -g;
-    [alpha, fp, gp, trials] = wolfe_search(evaluate, x, f, g, d, policy, previous);
-    verifyLessThanOrEqual(testCase, fp, f + .25 * alpha * (g' * d));
-    if startsWith(policy, 'weak')
-        verifyGreaterThanOrEqual(testCase, gp' * d, .75 * (g' * d));
-    else
-        verifyLessThanOrEqual(testCase, abs(gp' * d), .75 * abs(g' * d));
+function testFminuncTraceAndStoppingTest(testCase)
+    [obj, orbit] = DFPExperiment.finite(.03);
+    r = run_fminunc(obj, orbit, 'bfgs', 200);
+    for k = 1:height(r.trace)
+        [f, g] = DFPExperiment.valueGrad(obj, [r.trace.x1(k); r.trace.x2(k)]);
+        verifyEqual(testCase, f, r.trace.function_value(k), 'AbsTol', 1e-14);
+        verifyEqual(testCase, norm(g), r.trace.gradient_norm(k), 'AbsTol', 1e-14);
     end
-    if contains(policy, 'history')
-        expected = min(1, 1.01 * 2 * (f - previous) / (g' * d));
-        verifyEqual(testCase, trials(1, 1), expected, 'AbsTol', 1e-15);
-    else
-        verifyEqual(testCase, trials(1, 1), 1);
-        verifyGreaterThan(testCase, size(trials, 1), 1);
-    end
+    [~, g] = DFPExperiment.valueGrad(obj, r.x);
+    verifyEqual(testCase, strcmp(r.summary.status, 'gradient_tolerance'), norm(g) <= 1e-10);
+    verifyEqual(testCase, r.summary.counted_evaluations, r.output.funcCount);
 end
 
 function testInterpolationAtNodes(testCase)
@@ -153,9 +127,4 @@ function testMissingInputsFailClearly(testCase)
     DFPExperiment.writeJSON(fullfile(folder, 'raw', 'verification.json'), struct('passed', true));
     verifyError(testCase, @()run_experiments('verify', folder), 'dfp:MissingInput');
     verifyFalse(testCase, isfile(fullfile(folder, 'raw', 'verification.json')));
-end
-
-function [f, g] = quadratic(x, A)
-    f = .5 * (x' * A * x);
-    g = A * x;
 end
