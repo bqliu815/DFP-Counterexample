@@ -1,8 +1,8 @@
 cff-version: 1.2.0
-message: If you use this software, please cite the accompanying manuscript.
+message: If you use this software, please cite the paper below.
 type: software
 title: MATLAB experiments for the DFP counterexample under Wolfe line searches
-authors: &id001
+authors:
 - family-names: Liu
   given-names: Benqi
 - family-names: Wang
@@ -23,8 +23,21 @@ keywords:
 - counterexample
 - MATLAB
 preferred-citation:
-  type: unpublished
+  type: article
   title: A counterexample to global convergence of classical DFP under the standard
     strong Wolfe conditions
-  authors: *id001
+  authors:
+  - family-names: Liu
+    given-names: Benqi
+  - family-names: Wang
+    given-names: Zichen
+  - family-names: Wen
+    given-names: Zaiwen
+  - family-names: Zhang
+    given-names: Liwei
+  - family-names: Yuan
+    given-names: Yaxiang
   year: 2026
+  journal: arXiv
+  doi: 10.48550/arXiv.2608.21708
+  url: https://arxiv.org/abs/2608.21708

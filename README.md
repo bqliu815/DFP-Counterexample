@@ -1,9 +1,9 @@
 # DFP-Counterexample
 
-This repository accompanies the paper
+This repository provides MATLAB code for the paper
 
-*A counterexample to global convergence of classical DFP under the standard
-strong Wolfe conditions*.
+*[A counterexample to global convergence of classical DFP under the standard
+strong Wolfe conditions](https://arxiv.org/abs/2608.21708)*.
 
 Uniform convexity alone does not guarantee global convergence of classical
 DFP under the standard strong Wolfe conditions. The paper gives a
@@ -93,7 +93,6 @@ planar convergence under a locally Lipschitz Hessian. The
 describes the scope and lists the main theorem declarations.
 
 The following table links selected paper results to their Lean declarations.
-The source links use a fixed revision so that the line numbers remain stable.
 
 | Paper reference | Lean formalization |
 | --- | --- |
@@ -136,16 +135,20 @@ The formalization is distributed under the Apache 2.0 License in ReasBook.
 
 ## Citation
 
-If you use this code, please cite the accompanying manuscript:
+If you use this code, please cite:
 
 ```bibtex
-@unpublished{LiuWangWenYuanZhang2026DFP,
+@misc{LiuEtAl2026DFP,
   author = {Benqi Liu and Zichen Wang and Zaiwen Wen and
-            Yaxiang Yuan and Liwei Zhang},
+            Liwei Zhang and Yaxiang Yuan},
   title  = {A counterexample to global convergence of classical {DFP}
             under the standard strong {Wolfe} conditions},
   year   = {2026},
-  note   = {Manuscript}
+  eprint = {2608.21708},
+  archivePrefix = {arXiv},
+  primaryClass = {math.OC},
+  doi    = {10.48550/arXiv.2608.21708},
+  url    = {https://arxiv.org/abs/2608.21708}
 }
 ```
 
