@@ -32,18 +32,4 @@ function write_tables(outDir)
              'dfp_final_gradient_norm', 'bfgs_iterations', 'bfgs_final_gradient_norm'};
     writetable(array2table(rows, 'VariableNames', names), fullfile(tableDir, 'Table2.csv'));
 
-    rows = zeros(6, 5);
-    k = 0;
-    for e = epsilon0'
-        tag = strrep(sprintf('%.8g', e), '.', 'p');
-        for method = {'dfp', 'bfgs'}
-            k = k + 1;
-            s = jsondecode(fileread(fullfile(rawDir, ['identity_', method{1}, '_', tag, '.json'])));
-            rows(k, :) = [e, strcmp(method{1}, 'bfgs'), s.iterations, ...
-                          s.final_gradient_norm, s.exitflag];
-        end
-    end
-    writetable(array2table(rows, 'VariableNames', ...
-        {'epsilon0', 'is_bfgs', 'iterations', 'final_gradient_norm', 'exitflag'}), ...
-        fullfile(tableDir, 'Identity.csv'));
 end

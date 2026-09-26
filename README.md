@@ -63,10 +63,9 @@ dfp.summary
 bfgs.summary
 ```
 
-The default comparison uses a linear change of variables to retain the
-prescribed initial search direction. To use identity initialization in the
-original coordinates, pass `'identity'` as the fifth argument. MATLAB's
-internal line search and update safeguards are retained in both cases.
+Both methods use the same linear change of variables to retain the initial
+search direction associated with the matrix from the construction.
+MATLAB's internal line search and update safeguards are retained.
 
 ## Reproducing the numerical experiments
 

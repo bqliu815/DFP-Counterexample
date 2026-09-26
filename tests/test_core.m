@@ -37,11 +37,12 @@ end
 function testFminuncOriginalCoordinates(testCase)
     [obj, orbit] = DFPExperiment.finite(.03);
     orbit.x(1, :) = [10, -10];
+    orbit.h0 = [2, .25; .25, 1];
     for method = {'dfp', 'bfgs'}
-        r = run_fminunc(obj, orbit, method{1}, 100, 'identity');
+        r = run_fminunc(obj, orbit, method{1}, 100);
         verifyEqual(testCase, r.summary.status, 'gradient_tolerance');
         verifyLessThanOrEqual(testCase, r.summary.final_gradient_norm, 1e-10);
-        verifyEqual(testCase, r.h0, eye(2));
+        verifyEqual(testCase, r.h0, orbit.h0, 'RelTol', 1e-14);
         verifyEqual(testCase, r.summary.counted_evaluations, r.output.funcCount);
     end
 end

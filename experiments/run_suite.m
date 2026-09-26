@@ -29,15 +29,10 @@ switch mode
             tag = strrep(sprintf('%.8g', e), '.', 'p');
             [obj, o] = DFPExperiment.finite(e);
             saveObjective(fullfile(rawDir, ['finite_', tag, '.mat']), obj, o);
-            for initialization = {'prescribed', 'identity'}
-                for method = {'dfp', 'bfgs'}
-                    result = run_fminunc(obj, o, method{1}, 5000, initialization{1});
-                    prefix = '';
-                    if strcmp(initialization{1}, 'identity'), prefix = 'identity_'; end
-                    DFPExperiment.saveRun(fullfile(rawDir, ...
-                        [prefix, method{1}, '_', tag]), result);
-                    summaries{end+1} = result.summary;
-                end
+            for method = {'dfp', 'bfgs'}
+                result = run_fminunc(obj, o, method{1}, 5000);
+                DFPExperiment.saveRun(fullfile(rawDir, [method{1}, '_', tag]), result);
+                summaries{end+1} = result.summary;
             end
         end
         DFPExperiment.writeJSON(fullfile(rawDir, 'full_complete.json'), ...

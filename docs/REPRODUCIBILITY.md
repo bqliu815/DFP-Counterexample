@@ -92,13 +92,10 @@ by a tolerance in transformed coordinates. Native line-search termination
 can still stop a run earlier; its exit flag and message are saved separately.
 A positive exit flag alone is not counted as reaching the gradient target.
 
-Two initializations are recorded for each Table 2 parameter:
-
-- `prescribed`: minimize `f(x0 + L*z)` from `z = 0`, where `L*L' = H0`.
-  The gradient passed to MATLAB is `L'*grad_f`. Its initial direction maps
-  to `-H0*grad_f` in the original coordinates. This is the main comparison.
-- `identity`: use `L = I`, giving identity initialization in the original
-  coordinates. These controls are exported in `tables/Identity.csv`.
+The runs minimize `f(x0 + L*z)` from `z = 0`, where `L*L' = H0` and `H0`
+is the initial matrix from the construction. The gradient passed to MATLAB
+is `L'*grad_f`, so its initial direction maps to `-H0*grad_f` in the
+original coordinates.
 
 The same transform is used for DFP and BFGS. MATLAB's built-in line search,
 first-update scalar rescaling, and curvature safeguards are left unchanged.
@@ -119,7 +116,7 @@ differences of stored centers. The certificates concern the finite functions,
 not floating-point trajectories or the infinite construction.
 
 `verify_results` independently reevaluates all recorded iterates from the
-13 optimization runs, checks final gradients and stopping classifications,
+seven optimization runs, checks final gradients and stopping classifications,
 and checks the recurrence diagnostics and three exact certificates.
 
 | Output | Contents |
@@ -130,7 +127,7 @@ and checks the recurrence diagnostics and three exact certificates.
 | `raw/certificate_<parameter>.json` | Exact finite-function bounds |
 | `raw/verification.json` | Independent result checks |
 | `raw/environment_<mode>.json` | MATLAB release, toolboxes, and execution settings |
-| `tables/Table1.csv`, `Table2.csv`, `Identity.csv` | Recurrence and solver comparisons |
+| `tables/Table1.csv`, `Table2.csv` | Recurrence and solver comparisons |
 | `figures/Fig1.pdf`, `Fig2.pdf` | Vector figures, with PNG copies |
 
 Each trajectory row records the iteration, point, function value, original

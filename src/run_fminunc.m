@@ -1,21 +1,15 @@
-function result = run_fminunc(obj, orbit, method, maxIterations, initialization)
+function result = run_fminunc(obj, orbit, method, maxIterations)
 % RUN_FMINUNC Minimize a finite interpolant with MATLAB's DFP or BFGS.
-%   INITIALIZATION is 'prescribed' (default) or 'identity'. For the former,
 %   x = x0 + L*z, L*L' = H0, gives the prescribed initial search direction.
 %   MATLAB's internal line search, first-update scaling, and safeguards are
 %   left unchanged. Gradients and the stopping test use the original x units.
 % SPDX-License-Identifier: MIT
 
 if nargin < 4, maxIterations = 5000; end
-if nargin < 5, initialization = 'prescribed'; end
 method = validatestring(method, {'dfp', 'bfgs'});
-initialization = validatestring(initialization, {'prescribed', 'identity'});
 validateattributes(maxIterations, {'numeric'}, {'scalar', 'integer', 'positive'});
 x0 = orbit.x(1, :)';
-L = eye(2);
-if strcmp(initialization, 'prescribed')
-    L = chol(orbit.h0, 'lower');
-end
+L = chol(orbit.h0, 'lower');
 tolerance = 1e-10;
 maxEvaluations = 100000;
 rows = zeros(maxIterations + 1, 12);
@@ -55,7 +49,7 @@ result.output = output;
 result.exitflag = exitflag;
 result.options = rmfield(options, 'OutputFcn');
 result.summary = struct('solver', 'fminunc', 'epsilon0', obj.epsilon0, ...
-    'method', method, 'initialization', initialization, 'status', status, ...
+    'method', method, 'initialization', 'prescribed', 'status', status, ...
     'exitflag', exitflag, 'iterations', output.iterations, 'recorded_steps', nrows, ...
     'function_evaluations', output.funcCount, 'counted_evaluations', evaluations, ...
     'monitor_evaluations', monitorEvaluations, 'elapsed_seconds', elapsed, ...

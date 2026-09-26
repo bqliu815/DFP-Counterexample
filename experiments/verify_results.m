@@ -5,7 +5,7 @@ rawDir = fullfile(outDir, 'raw');
 names = {'geometry_bfgs'};
 for e = [.001, .002, .0025]
     tag = strrep(sprintf('%.8g', e), '.', 'p');
-    for prefix = {'dfp_', 'bfgs_', 'identity_dfp_', 'identity_bfgs_'}
+    for prefix = {'dfp_', 'bfgs_'}
         names{end+1} = [prefix{1}, tag];
     end
 end
