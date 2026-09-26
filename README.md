@@ -112,11 +112,9 @@ Interactive theorem map:
 https://optpku.github.io/ReasBook/theorem-maps/papers/dfp_wolfe_local/?view=paper
 
 A short walkthrough shows how to compare Theorem 1 with its Lean statement,
-inspect the strong Wolfe conditions, and navigate definitions in ReasLab.
+inspect the strong Wolfe conditions, and navigate definitions in ReasLab:
 
-[English video (3:10, MP4)](https://github.com/bqliu815/DFP-Counterexample/releases/download/walkthrough-20260926/DFP_Lean_walkthrough_20260926_en.mp4) ·
-[Chinese video (3:20, MP4)](https://github.com/bqliu815/DFP-Counterexample/releases/download/walkthrough-20260926/DFP_Lean_walkthrough_20260926_zh.mp4).
-Subtitles are included in the [video release](https://github.com/bqliu815/DFP-Counterexample/releases/tag/walkthrough-20260926).
+https://github.com/user-attachments/assets/a37e11f0-5c68-4265-96de-7f875de9c0c3
 
 The project uses Lean 4.32.0 and mathlib 4.32.0. With Lean's `elan` toolchain
 manager installed, the following commands check the source snapshot used
@@ -134,7 +132,6 @@ lake lean Papers/DFP_wolfe_local/Paper.lean
 `Paper.lean` imports the paper's public theorem interface. The last command
 builds the required modules and checks this entry point.
 
-Lean contributor: [Zichen Wang](https://github.com/imathwy).
 The formalization is distributed under the Apache 2.0 License in ReasBook.
 
 ## Citation
