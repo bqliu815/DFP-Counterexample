@@ -23,9 +23,6 @@ https://github.com/optpku/ReasBook/tree/v4.32.0/ReasBook/Papers/DFP_wolfe_local/
 Project on ReasLab:
 https://reaslab.io/share/fqxVBj9GRaqFajkYxVtyXQR1210a9.MTc.YWxs
 
-The LaTeX manuscript, MATLAB code, and Lean formalization will be added
-to this project.
-
 ## Repository contents
 
 | Path | Contents |
@@ -95,13 +92,31 @@ planar convergence under a locally Lipschitz Hessian. The
 [formalization README](https://github.com/optpku/ReasBook/blob/v4.32.0/ReasBook/Papers/DFP_wolfe_local/README.md)
 describes the scope and lists the main theorem declarations.
 
-The theorem map is shown below. Click the image to open the interactive
-paper view.
+The following table links selected paper results to their Lean declarations.
+The source links use a fixed revision so that the line numbers remain stable.
+
+| Paper reference | Lean formalization |
+| --- | --- |
+| Theorem 1 | [Strong Wolfe counterexample with a globally $1/2$-Hölder Hessian](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/HolderSharpness.lean#L406) |
+| Corollary 2 | [Identity initialization with Hölder regularity](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/Holder.lean#L107) |
+| Theorem 3 | Planar convergence under [weak Wolfe](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/Main.lean#L198) and [strong Wolfe](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/Main.lean#L223) conditions |
+| Lemma 11 | [Secant degeneration and vanishing smallest eigenvalue](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/SecantDegeneration.lean#L726) |
+| Equation (73) | [Sharpness of the $1/2$-Hölder exponent](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/HolderSharpness.lean#L406) |
+
+The theorem map covers all numbered results. Click the image to open the
+interactive paper view.
 
 [![Theorem dependency map for the DFP paper](docs/assets/dfp_theorem_map.png)](https://optpku.github.io/ReasBook/theorem-maps/papers/dfp_wolfe_local/?view=paper)
 
 Interactive theorem map:
 https://optpku.github.io/ReasBook/theorem-maps/papers/dfp_wolfe_local/?view=paper
+
+A short walkthrough shows how to compare Theorem 1 with its Lean statement,
+inspect the strong Wolfe conditions, and navigate definitions in ReasLab.
+
+[English video (3:10, MP4)](https://github.com/bqliu815/DFP-Counterexample/releases/download/walkthrough-20260926/DFP_Lean_walkthrough_20260926_en.mp4) ·
+[Chinese video (3:20, MP4)](https://github.com/bqliu815/DFP-Counterexample/releases/download/walkthrough-20260926/DFP_Lean_walkthrough_20260926_zh.mp4).
+Subtitles are included in the [video release](https://github.com/bqliu815/DFP-Counterexample/releases/tag/walkthrough-20260926).
 
 The project uses Lean 4.32.0 and mathlib 4.32.0. With Lean's `elan` toolchain
 manager installed, the following commands check the source snapshot used
@@ -110,7 +125,7 @@ here:
 ```sh
 git clone --branch v4.32.0 https://github.com/optpku/ReasBook.git
 cd ReasBook
-git checkout 1a74e5e51ee05415c98410f9052ba371ec546b43
+git checkout cfabd0d50e7d1e3007a755878841072b0ea00063
 cd ReasBook
 lake exe cache get
 lake lean Papers/DFP_wolfe_local/Paper.lean
