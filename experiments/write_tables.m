@@ -11,10 +11,11 @@ function write_tables(outDir)
     geometry = jsondecode(fileread(fullfile(rawDir, 'geometry.json')));
     quantity = {'epsilon_increment'; 'amplitude_increment'; 'rotation_increment'; ...
                 'strong_wolfe_ratio_first'; 'strong_wolfe_ratio_second'; ...
-                'line_ratio_residual'; 'secant_residual'};
+                'line_ratio_residual'; 'secant_residual'; 'armijo_failures'};
     computed = [geometry.normalized_medians(:); geometry.strong_ratio_medians(:); ...
-                geometry.max_line_ratio_residual; geometry.max_secant_residual];
-    limit = [-1.5; -6.5; -3; 1/3; 2/3; 0; 0];
+                geometry.max_line_ratio_residual; geometry.max_secant_residual; ...
+                geometry.armijo_failures];
+    limit = [-1.5; -6.5; -3; 1/3; 2/3; 0; 0; NaN];
     writetable(table(quantity, computed, limit), fullfile(tableDir, 'Table1.csv'));
 
     epsilon0 = [.001; .002; .0025];
