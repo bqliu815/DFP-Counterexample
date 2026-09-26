@@ -36,10 +36,9 @@ For a single-threaded headless run, use:
 matlab -nodisplay -singleCompThread -batch "run_experiments('all')"
 ```
 
-Figure export requires the JVM. The numerical stage can also be run separately with `-nojvm`. The caller's working directory and
-MATLAB search path are preserved. The GitHub Actions workflow runs the tests
-on MATLAB R2023a with Optimization Toolbox and Statistics and Machine
-Learning Toolbox.
+Figure export requires the JVM; the numerical stage can be run separately
+with `-nojvm`. The GitHub Actions workflow runs the tests on MATLAB R2023a
+with Optimization Toolbox and Statistics and Machine Learning Toolbox.
 
 ## Prescribed recurrence
 
@@ -104,9 +103,8 @@ Two initializations are recorded for each Table 2 parameter:
 The same transform is used for DFP and BFGS. MATLAB's built-in line search,
 first-update scalar rescaling, and curvature safeguards are left unchanged.
 In R2023a, the internal line-search parameters are `rho = 0.01` and
-`sigma = 0.9`. The adapter does not supply a custom line search, prescribe
-accepted steps, or modify MATLAB's implementation. Thus these runs measure
-the built-in solver, while Figure 1(a) measures the prescribed recurrence.
+`sigma = 0.9`. These runs measure the built-in solver, while Figure 1(a)
+measures the prescribed recurrence.
 
 All plotted gradient norms and stated Hessian bounds refer to the original
 coordinates. The finite functions have Lipschitz Hessians; these experiments
@@ -122,9 +120,7 @@ not floating-point trajectories or the infinite construction.
 
 `verify_results` independently reevaluates all recorded iterates from the
 13 optimization runs, checks final gradients and stopping classifications,
-and checks the recurrence diagnostics and three exact certificates. It does
-not require one method to outperform another or turn a native stopping flag
-into a convergence claim.
+and checks the recurrence diagnostics and three exact certificates.
 
 | Output | Contents |
 | --- | --- |

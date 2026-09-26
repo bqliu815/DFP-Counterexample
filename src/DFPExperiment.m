@@ -113,15 +113,11 @@ classdef DFPExperiment
             o.cycles = cycles;
         end
 
-        function [obj, o] = finite(e0, prefixFactor)
+        function [obj, o] = finite(e0)
             % FINITE Realize a finite prefix by disjoint local gradient corrections.
             % obj.band is a floating-point bound; certify_bounds checks exact bounds.
-            if nargin < 2
-                prefixFactor = 2;
-            end
             budget = max(100, ceil(.5 * e0^(-1.5)));
-            steps = ceil(prefixFactor * budget) + 4;
-            steps = steps + mod(steps, 2);
+            steps = 2 * budget + 4;
             o = DFPExperiment.oracle(steps / 2, e0);
             obj.points = o.x;
             obj.centers = o.centers;
@@ -136,11 +132,9 @@ classdef DFPExperiment
             obj.band = [1 - obj.perturbation, 1 + obj.perturbation];
             obj.epsilon0 = e0;
             obj.steps = steps;
-            obj.budget = budget;
-            obj.prefixFactor = prefixFactor;
         end
 
-        function [f, g, nearest, dist] = valueGrad(obj, x)
+        function [f, g] = valueGrad(obj, x)
             % VALUEGRAD Evaluate the finite objective function and its analytic gradient.
             % The radial cutoff is one up to rho/3 and zero from rho onward.
             d = x - obj.center_ref;

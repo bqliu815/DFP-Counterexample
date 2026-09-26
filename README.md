@@ -15,7 +15,7 @@ Lipschitz continuous near the initial level set.
 
 The MATLAB code reproduces the numerical experiments in Sections 6.1–6.2:
 the prescribed two-step recurrence, finite interpolation, and DFP/BFGS
-comparisons using MATLAB's `fminunc` with DFP and BFGS updates.
+comparisons using MATLAB's `fminunc`.
 
 Lean formalization:
 https://github.com/optpku/ReasBook/tree/v4.32.0/ReasBook/Papers/DFP_wolfe_local/
@@ -36,8 +36,8 @@ https://reaslab.io/share/fqxVBj9GRaqFajkYxVtyXQR1210a9.MTc.YWxs
 ## Installation
 
 The reference experiments use MATLAB R2023a with Optimization Toolbox and
-Statistics and Machine Learning Toolbox. The Symbolic Math Toolbox is also required for the exact
-certificates (`certify` and `all`).
+Statistics and Machine Learning Toolbox. Symbolic Math Toolbox is also
+required for the exact certificates (`certify` and `all`).
 
 Download the repository or clone it:
 
@@ -120,9 +120,8 @@ inspect the strong Wolfe conditions, and navigate definitions in ReasLab:
 
 https://github.com/user-attachments/assets/a37e11f0-5c68-4265-96de-7f875de9c0c3
 
-The project uses Lean 4.32.0 and mathlib 4.32.0. With Lean's `elan` toolchain
-manager installed, the following commands check the source snapshot used
-here:
+The formalization uses Lean 4.32.0 and mathlib 4.32.0. With Lean's `elan`
+toolchain manager installed, run:
 
 ```sh
 git clone --branch v4.32.0 https://github.com/optpku/ReasBook.git
