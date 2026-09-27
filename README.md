@@ -118,7 +118,7 @@ https://optpku.github.io/ReasBook/theorem-maps/papers/dfp_wolfe_local/?view=pape
 A short walkthrough shows how to compare Theorem 1 with its Lean statement,
 inspect the strong Wolfe conditions, and navigate definitions in ReasLab:
 
-https://github.com/user-attachments/assets/a37e11f0-5c68-4265-96de-7f875de9c0c3
+https://github.com/user-attachments/assets/05377f12-3f84-4915-98bf-e1aa71c52507
 
 The formalization uses Lean 4.32.0 and mathlib 4.32.0. With Lean's `elan`
 toolchain manager installed, run:
