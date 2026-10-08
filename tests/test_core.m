@@ -1,5 +1,5 @@
 function tests = test_core
-    % TEST_CORE Check the recurrence, interpolation, fminunc adapter, and entry point.
+    % TEST_CORE Check the polar recurrence, interpolation, solver, and entry point.
     % SPDX-License-Identifier: MIT
     tests = functiontests(localfunctions);
 end
@@ -7,125 +7,116 @@ end
 function setupOnce(testCase)
     root = fileparts(fileparts(mfilename('fullpath')));
     testCase.TestData.oldPath = path;
-    addpath(root, fullfile(root, 'src'), fullfile(root, 'experiments'));
+    testCase.TestData.root = root;
+    addpath(root, fullfile(root, 'polar'));
+    testCase.TestData.orbit = PolarDFP.orbit(200, 400^3, 1.03);
+    testCase.TestData.objective = PolarDFP.finite(testCase.TestData.orbit);
 end
 
 function teardownOnce(testCase)
     path(testCase.TestData.oldPath);
 end
 
-function testDFPUpdate(testCase)
-    H = [2, .2; .2, 1];
-    s = [.3; -.2];
-    y = [2, .1; .1, 3] * s;
-    updated = DFPExperiment.update(H, s, y);
-    verifyEqual(testCase, updated, updated', 'AbsTol', 1e-15);
-    verifyLessThan(testCase, norm(updated * y - s), 1e-14);
-    verifyGreaterThan(testCase, min(eig(updated)), 0);
-end
-
 function testPrescribedRecurrence(testCase)
-    orbit = DFPExperiment.oracle(100, .03);
-    summary = DFPExperiment.geometrySummary(orbit);
-    verifySize(testCase, orbit.x, [201, 2]);
+    orbit = testCase.TestData.orbit;
+    summary = orbit.summary;
+    verifySize(testCase, orbit.x, [401, 2]);
     verifyEqual(testCase, summary.armijo_failures, 0);
     verifyEqual(testCase, summary.strong_failures, 0);
-    verifyLessThan(testCase, summary.max_secant_residual, 1e-12);
-    verifyGreaterThan(testCase, summary.min_metric_eigenvalue, 0);
-end
+    verifyLessThan(testCase, summary.max_secant_residual, 1e-10);
+    verifyLessThan(testCase, summary.max_update_residual, 1e-10);
+    verifyGreaterThan(testCase, summary.min_normalized_eigenvalue, 0);
+    verifyGreaterThan(testCase, summary.min_sigma, 0);
+    verifyGreaterThan(testCase, min(eig(orbit.h0)), 0);
+    verifyEqual(testCase, orbit.h0, orbit.h0', 'AbsTol', 1e-15);
+    verifyEqual(testCase, orbit.r(end), 1, 'AbsTol', 1e-14);
+    verifyTrue(testCase, all(diff(orbit.r) < 0));
 
-function testFminuncOriginalCoordinates(testCase)
-    [obj, orbit] = DFPExperiment.finite(.03);
-    orbit.x(1, :) = [10, -10];
-    orbit.h0 = [2, .25; .25, 1];
-    for method = {'dfp', 'bfgs'}
-        r = run_fminunc(obj, orbit, method{1}, 100);
-        verifyEqual(testCase, r.summary.status, 'gradient_tolerance');
-        verifyLessThanOrEqual(testCase, r.summary.final_gradient_norm, 1e-10);
-        verifyEqual(testCase, r.h0, orbit.h0, 'RelTol', 1e-14);
-        verifyEqual(testCase, r.summary.counted_evaluations, r.output.funcCount);
-    end
-end
-
-function testPrescribedInitialDirectionAndBudget(testCase)
-    [obj, orbit] = DFPExperiment.finite(.03);
-    r = run_fminunc(obj, orbit, 'dfp', 3);
-    verifyEqual(testCase, r.summary.status, 'iteration_limit');
-    verifyEqual(testCase, r.summary.iterations, 3);
-    verifyEqual(testCase, r.h0, orbit.h0, 'RelTol', 1e-14);
-    [~, g0] = DFPExperiment.valueGrad(obj, orbit.x(1, :)');
-    step = [r.trace.x1(1); r.trace.x2(1)] - orbit.x(1, :)';
-    expected = -r.trace.alpha(1)*orbit.h0*g0;
-    verifyLessThan(testCase, norm(step - expected), 1e-15);
-end
-
-function testFminuncTraceAndStoppingTest(testCase)
-    [obj, orbit] = DFPExperiment.finite(.03);
-    r = run_fminunc(obj, orbit, 'bfgs', 200);
-    for k = 1:height(r.trace)
-        [f, g] = DFPExperiment.valueGrad(obj, [r.trace.x1(k); r.trace.x2(k)]);
-        verifyEqual(testCase, f, r.trace.function_value(k), 'AbsTol', 1e-14);
-        verifyEqual(testCase, norm(g), r.trace.gradient_norm(k), 'AbsTol', 1e-14);
-    end
-    [~, g] = DFPExperiment.valueGrad(obj, r.x);
-    verifyEqual(testCase, strcmp(r.summary.status, 'gradient_tolerance'), norm(g) <= 1e-10);
-    verifyEqual(testCase, r.summary.counted_evaluations, r.output.funcCount);
+    step = (orbit.x(2, :) - orbit.x(1, :))';
+    direction = -orbit.h0 * orbit.g(1, :)';
+    verifyLessThan(testCase, norm(step / norm(step) - direction / norm(direction)), 1e-8);
 end
 
 function testInterpolationAtNodes(testCase)
-    [obj, orbit] = DFPExperiment.finite(.03);
-    for k = [1, 10, size(obj.points, 1)]
-        x = obj.points(k, :)';
-        [f, g] = DFPExperiment.valueGrad(obj, x);
+    orbit = testCase.TestData.orbit;
+    objective = testCase.TestData.objective;
+    verifyGreaterThan(testCase, objective.band(1), 0);
+    for k = 1:size(objective.points, 1)
+        x = objective.points(k, :)';
+        [f, g] = PolarDFP.valueGrad(objective, x);
+        verifyEqual(testCase, f, .5 * (x' * x), 'AbsTol', 1e-14);
         verifyEqual(testCase, g, orbit.g(k, :)', 'AbsTol', 1e-13);
-        verifyEqual(testCase, f, .5 * norm(x - obj.center_ref)^2, 'AbsTol', 1e-14);
     end
 end
 
 function testGradientInsideTransition(testCase)
-    [obj, ~] = DFPExperiment.finite(.03);
+    % The larger scale keeps the cutoff correction above subtraction noise.
+    orbit = PolarDFP.orbit(20, 32^3, 1.03);
+    objective = PolarDFP.finite(orbit);
     k = 10;
-    x = obj.points(k, :)' + .6 * obj.radii(k) * [.6; .8];
-    [~, gradient] = DFPExperiment.valueGrad(obj, x);
-    h = 1e-4 * obj.radii(k);
+    verifyGreaterThan(testCase, norm(objective.corrections(k, :)), 1e-8);
+    x = objective.points(k, :)' + .6 * objective.radii(k) * [.6; .8];
+    [~, gradient] = PolarDFP.valueGrad(objective, x);
+    h = 1e-3 * objective.radii(k);
     finiteDifference = zeros(2, 1);
     for j = 1:2
         delta = zeros(2, 1);
         delta(j) = h;
-        finiteDifference(j) = (DFPExperiment.valueGrad(obj, x + delta) ...
-                               - DFPExperiment.valueGrad(obj, x - delta)) / (2 * h);
+        finiteDifference(j) = (PolarDFP.valueGrad(objective, x + delta) ...
+                               - PolarDFP.valueGrad(objective, x - delta)) / (2 * h);
     end
-    verifyLessThan(testCase, norm(finiteDifference - gradient), 1e-5);
+    verifyLessThan(testCase, norm(finiteDifference - gradient), 1e-7);
 end
 
 function testQuadraticOutsideSupports(testCase)
-    [obj, ~] = DFPExperiment.finite(.03);
     x = [10; -10];
-    [f, g] = DFPExperiment.valueGrad(obj, x);
-    verifyEqual(testCase, g, x - obj.center_ref);
-    verifyEqual(testCase, f, .5 * norm(x - obj.center_ref)^2, 'AbsTol', 1e-12);
+    [f, g] = PolarDFP.valueGrad(testCase.TestData.objective, x);
+    verifyEqual(testCase, g, x);
+    verifyEqual(testCase, f, .5 * (x' * x), 'AbsTol', 1e-12);
+end
+
+function testBFGSFinalGradientAndTrace(testCase)
+    objective = testCase.TestData.objective;
+    orbit = testCase.TestData.orbit;
+    result = PolarDFP.solve(objective, orbit, 'bfgs', 100);
+    [~, finalGradient] = PolarDFP.valueGrad(objective, result.x);
+    verifyEqual(testCase, result.summary.status, 'gradient_tolerance');
+    verifyLessThanOrEqual(testCase, norm(finalGradient), 1e-10);
+    verifyEqual(testCase, result.summary.final_gradient_norm, norm(finalGradient), 'AbsTol', 1e-14);
+    verifyGreaterThan(testCase, height(result.trace), 1);
+    verifyEqual(testCase, [result.trace.x1(1), result.trace.x2(1)], orbit.x(1, :), 'AbsTol', 1e-14);
+    for k = 1:height(result.trace)
+        x = [result.trace.x1(k); result.trace.x2(k)];
+        [f, g] = PolarDFP.valueGrad(objective, x);
+        verifyEqual(testCase, result.trace.function_value(k), f, 'AbsTol', 1e-14);
+        verifyEqual(testCase, result.trace.gradient_norm(k), norm(g), 'AbsTol', 1e-14);
+    end
 end
 
 function testEntryPointPreservesSession(testCase)
-    folder = tempname;
+    folder = tempname(tempdir);
     mkdir(folder);
-    cleanup = onCleanup(@()rmdir(folder, 's'));
     oldDirectory = pwd;
     oldPath = path;
-    run_experiments('probe', folder);
-    verifyEqual(testCase, pwd, oldDirectory);
-    verifyEqual(testCase, path, oldPath);
-    env = jsondecode(fileread(fullfile(folder, 'raw', 'environment_probe.json')));
-    verifyFalse(testCase, isfield(env, 'hostname'));
-    verifyEqual(testCase, env.precision, 'IEEE 754 binary64');
+    cleanup = onCleanup(@()restoreSession(oldDirectory, oldPath, folder));
+    rmpath(fullfile(testCase.TestData.root, 'polar'));
+    cd(folder);
+    expectedDirectory = pwd;
+    expectedPath = path;
+    outputDir = fullfile(folder, 'output');
+    run_experiments('smoke', outputDir);
+    verifyEqual(testCase, pwd, expectedDirectory);
+    verifyEqual(testCase, path, expectedPath);
+    smoke = jsondecode(fileread(fullfile(outputDir, 'smoke.json')));
+    verifyEqual(testCase, smoke.recurrence.armijo_failures, 0);
+    verifyEqual(testCase, smoke.recurrence.strong_failures, 0);
+    verifyLessThanOrEqual(testCase, smoke.solver.final_gradient_norm, 1e-10);
 end
 
-function testMissingInputsFailClearly(testCase)
-    folder = tempname;
-    mkdir(folder);
-    cleanup = onCleanup(@()rmdir(folder, 's'));
-    mkdir(fullfile(folder, 'raw'));
-    DFPExperiment.writeJSON(fullfile(folder, 'raw', 'verification.json'), struct('passed', true));
-    verifyError(testCase, @()run_experiments('verify', folder), 'dfp:MissingInput');
-    verifyFalse(testCase, isfile(fullfile(folder, 'raw', 'verification.json')));
+function restoreSession(oldDirectory, oldPath, folder)
+    cd(oldDirectory);
+    path(oldPath);
+    if isfolder(folder)
+        rmdir(folder, 's');
+    end
 end

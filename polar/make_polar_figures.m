@@ -1,18 +1,14 @@
-function make_figures(outDir)
-    % MAKE_FIGURES Export Figures 1 and 2 from the stored MATLAB trajectories.
+function make_polar_figures
+    % MAKE_POLAR_FIGURES Export the stored polar experiments in the public figure style.
     % SPDX-License-Identifier: MIT
-    rawDir = fullfile(outDir, 'raw');
-    figDir = fullfile(outDir, 'figures');
-    if ~isfolder(figDir)
-        mkdir(figDir);
-    end
-    S = load(fullfile(rawDir, 'geometry.mat'), 'o');
-    o = S.o;
-    S = load(fullfile(rawDir, 'geometry_bfgs.mat'), 'result');
-    b = S.result;
-    G = jsondecode(fileread(fullfile(rawDir, 'geometry.json')));
+    figDir = pwd;
+    S = load('geometry.mat', 'geometry');
+    o = S.geometry;
+    S = load('bfgs.mat', 'bfgs');
+    b = S.bfgs;
     theta = linspace(0, 2 * pi, 1200)';
-    circle = o.centers(end, :) + G.limiting_radius_estimate * [cos(theta), sin(theta)];
+    circle = [cos(theta), sin(theta)];
+    axisLimit = max(1.2, ceil(10 * max(vecnorm(o.x, 2, 2))) / 10);
     blue = [0, .447, .698];
     red = [.80, .239, .333];
     orange = [.725, .302, 0];
@@ -32,49 +28,64 @@ function make_figures(outDir)
         set(ax, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'GridColor', [.5, .5, .5]);
         hold(ax, 'on');
         if j == 1
-            h_method = plot(ax, o.x(:, 1), o.x(:, 2), 'Color', blue, 'LineWidth', .32, 'DisplayName', 'DFP');
+            h_method = plot(ax, o.x(:, 1), o.x(:, 2), 'Color', blue, 'LineWidth', .16, 'DisplayName', 'DFP');
             h_circle = plot(ax, circle(:, 1), circle(:, 2), '--', ...
-                'Color', orange, 'LineWidth', 1, 'DisplayName', 'Circle estimate');
+                'Color', orange, 'LineWidth', 1, 'DisplayName', 'Unit circle');
             plot(ax, o.x(1, 1), o.x(1, 2), 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 3, 'HandleVisibility', 'off');
             plot(ax, o.x(end, 1), o.x(end, 2), 's', 'Color', blue, ...
                 'MarkerFaceColor', 'w', 'MarkerSize', 3.5, 'HandleVisibility', 'off');
             title(ax, '(a) DFP: $100{,}000$ cycles', 'FontWeight', 'normal', 'FontSize', 8);
-            ylabel(ax, '$x_2$');
         else
-            xx = [b.x0; b.trace.x1, b.trace.x2];
+            xx = [b.trace.x1, b.trace.x2];
             h_circle = plot(ax, circle(:, 1), circle(:, 2), '--', ...
-                'Color', orange, 'LineWidth', 1, 'DisplayName', 'Circle estimate');
+                'Color', orange, 'LineWidth', 1, 'DisplayName', 'Unit circle');
             h_method = plot(ax, xx(:, 1), xx(:, 2), '-o', 'Color', red, ...
                 'LineWidth', .85, 'MarkerFaceColor', red, 'MarkerSize', 2.3, ...
-                'DisplayName', 'BFGS (fminunc)');
+                'DisplayName', 'BFGS');
             plot(ax, xx(1, 1), xx(1, 2), 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 3, 'HandleVisibility', 'off');
             plot(ax, xx(end, 1), xx(end, 2), 'k*', 'MarkerSize', 6, 'HandleVisibility', 'off');
-            title(ax, sprintf('(b) BFGS: %d iterations', height(b.trace)), 'FontWeight', 'normal', 'FontSize', 8);
-            ax.YTickLabel = {};
+            title(ax, sprintf('(b) BFGS: %d iterations', b.summary.iterations), 'FontWeight', 'normal', 'FontSize', 8);
         end
-        lg = legend(ax, [h_method, h_circle], 'Location', 'northeast', 'FontSize', 7, 'Box', 'on');
+        lg = legend(ax, [h_method, h_circle], 'Location', 'northeast', 'FontSize', 9, 'Box', 'on');
         set(lg, 'Color', 'w', 'TextColor', 'k', 'EdgeColor', [.3, .3, .3]);
         lg.ItemTokenSize = [12, 8];
         axis(ax, 'equal');
-        xlim(ax, [-1.07, 1.07]);
-        ylim(ax, [-1.07, 1.07]);
+        xlim(ax, [-axisLimit, axisLimit]);
+        ylim(ax, [-axisLimit, axisLimit]);
         xticks(ax, -1:.5:1);
         yticks(ax, -1:.5:1);
         xlabel(ax, '$x_1$');
+        ylabel(ax, '$x_2$');
         ax.XTickLabelRotation = 0;
         grid(ax, 'on');
         box(ax, 'on');
         ax.GridAlpha = .18;
         ax.LineWidth = .5;
+        if j == 1
+            rectangle(ax, 'Position', [-.07, -1.12, .14, .14], ...
+                'EdgeColor', [.25, .25, .25], 'LineWidth', .5);
+        end
     end
+    detail = axes(fig, 'Position', [.235, .40, .16, .24]);
+    plot(detail, o.x(:, 1), o.x(:, 2), 'Color', blue, 'LineWidth', .4);
+    axis(detail, 'equal');
+    xlim(detail, [-.07, .07]); ylim(detail, [-1.12, -.98]);
+    set(detail, 'XTick', [-.05, .05], 'YTick', [-1.10, -1.05, -1], ...
+        'FontSize', 8, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', ...
+        'LineWidth', .5, 'XTickLabelRotation', 0);
+    box(detail, 'on');
+    title(detail, 'Detail', 'FontSize', 8, 'FontWeight', 'normal');
+    annotation(fig, 'arrow', [.3025, .3025], [.25417, .397], ...
+        'Color', [.25, .25, .25], 'LineWidth', .55, ...
+        'HeadLength', 4, 'HeadWidth', 4);
     exportgraphics(fig, fullfile(figDir, 'Fig1.pdf'), 'ContentType', 'vector');
     exportgraphics(fig, fullfile(figDir, 'Fig1.png'), 'Resolution', 300);
     close(fig);
 
-    S = load(fullfile(rawDir, 'dfp_0p0025.mat'), 'result');
-    d = S.result;
-    S = load(fullfile(rawDir, 'bfgs_0p0025.mat'), 'result');
-    b = S.result;
+    S = load('dfp.mat', 'dfp');
+    d = S.dfp;
+    S = load('bfgs.mat', 'bfgs');
+    b = S.bfgs;
     fig = figure('Visible', 'off', 'Color', 'w', 'Units', 'inches', 'Position', [0, 0, 3.6, 2.5], ...
                  'PaperPositionMode', 'auto', 'Renderer', 'painters');
     ax = axes(fig, 'Position', [.19, .25, .71, .69]);
@@ -91,7 +102,7 @@ function make_figures(outDir)
     ax.YTickLabel = compose('$10^{%d}$', -12:2:0);
     xlabel(ax, 'Iteration $k$', 'FontSize', 10);
     ylabel(ax, '$\|g_k\|_2$', 'FontSize', 10, 'Interpreter', 'latex');
-    lg = legend(ax, 'Location', 'northeast', 'FontSize', 9, 'Box', 'on');
+    lg = legend(ax, 'Location', 'northeast', 'FontSize', 10, 'Box', 'on');
     set(lg, 'Color', 'w', 'TextColor', 'k', 'EdgeColor', [.3, .3, .3]);
     grid(ax, 'on');
     box(ax, 'on');
@@ -101,6 +112,6 @@ function make_figures(outDir)
     close(fig);
     completed = struct('created', true, 'software', version, ...
                        'source', 'Stored MATLAB iterate data', 'smoothing', false, ...
-                       'circle_radius', G.limiting_radius_estimate, 'bfgs_iterations', height(b.trace));
-    DFPExperiment.writeJSON(fullfile(rawDir, 'figures_complete.json'), completed);
+                       'circle_radius', 1, 'bfgs_iterations', b.summary.iterations);
+    PolarDFP.writeJSON(fullfile(figDir, 'figures_complete.json'), completed);
 end

@@ -13,8 +13,9 @@ convergence under the standard weak Wolfe conditions for strongly convex
 $C^2$ objective functions in two dimensions when the Hessian is locally
 Lipschitz continuous near the initial level set.
 
-The MATLAB code reproduces the numerical experiments in Sections 6.1–6.2.
-The prescribed two-step recurrence is evaluated directly. The DFP and BFGS
+The MATLAB code implements the polar construction and reproduces the numerical
+experiments in Sections 6.1–6.2 of the revised manuscript. The prescribed
+two-step recurrence is evaluated directly. The DFP and BFGS
 comparisons use MATLAB's `fminunc` on fixed finite objective functions
 formed by local interpolation.
 
@@ -28,15 +29,16 @@ https://reaslab.io/share/fqxVBj9GRaqFajkYxVtyXQR1210a9.MTc.YWxs
 
 | Path | Contents |
 | --- | --- |
-| `src/DFPExperiment.m` | Prescribed DFP recurrence and finite interpolation |
-| `src/run_fminunc.m` | DFP/BFGS comparisons with MATLAB's built-in solver |
+| `polar/PolarDFP.m` | Polar recurrence, finite interpolation, and DFP/BFGS solvers |
+| `polar/run_polar_experiments.m` | Numerical experiments and exact certificates |
+| `polar/certify_finite.m` | Support separation and global Hessian bounds |
+| `polar/make_polar_figures.m` | Figure generation, including the DFP detail inset |
 | `run_experiments.m` | Entry point for tests and paper experiments |
-| `experiments/` | Experiment settings, checks of Hessian bounds, and table and figure generation |
-| `tests/` | Tests for the recurrence, interpolation, solver interface, and entry point |
+| `tests/` | Tests of the recurrence, interpolation, solver, and entry point |
 
 ## Installation
 
-The reference experiments use MATLAB R2023a with Optimization Toolbox and
+The reference experiments use MATLAB R2025a Update 1 with Optimization Toolbox and
 Statistics and Machine Learning Toolbox. Symbolic Math Toolbox is also
 required for the exact certificates (`certify` and `all`).
 
@@ -56,10 +58,11 @@ run_experiments('smoke');
 To run the DFP/BFGS comparison directly:
 
 ```matlab
-addpath('src');
-[objective, orbit] = DFPExperiment.finite(0.0025);
-dfp = run_fminunc(objective, orbit, 'dfp', 5000);
-bfgs = run_fminunc(objective, orbit, 'bfgs', 5000);
+addpath('polar');
+orbit = PolarDFP.orbit(4002, 400^3, 1.03);
+objective = PolarDFP.finite(orbit);
+dfp = PolarDFP.solve(objective, orbit, 'dfp', 5000);
+bfgs = PolarDFP.solve(objective, orbit, 'bfgs', 5000);
 dfp.summary
 bfgs.summary
 ```
@@ -70,8 +73,8 @@ MATLAB's internal line search and update safeguards are retained.
 
 ## Reproducing the numerical experiments
 
-The complete run generates the data, checks the Hessian bounds and recorded
-trajectories, and exports the tables and figures:
+The complete run generates the trajectories, certifies the Hessian bounds,
+and exports the figures:
 
 ```matlab
 run_experiments('all');
@@ -83,21 +86,22 @@ For the single-threaded setup used in the paper, run from the repository root:
 matlab -singleCompThread -batch "run_experiments('all')"
 ```
 
-Results are written to `results/paper/`, with `raw/`, `tables/`, and `figures/`
-subdirectories. A second argument selects a different output directory.
+Results are written to `results/paper/`. JSON summaries contain the quantities
+reported in the tables. A second argument selects a different output directory.
 See [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) for individual stages,
 experimental parameters, and generated output files. Results are generated
 locally and excluded from version control.
 
 ## Formal verification
 
-The Lean 4 formalization covers the nonconvergence construction, its Hölder
+The existing Lean 4 formalization covers the earlier nonconvergence construction, its Hölder
 regularity, extensions to higher dimensions and identity initialization, and
 planar convergence with a locally Lipschitz continuous Hessian. The
 [formalization README](https://github.com/optpku/ReasBook/blob/v4.32.0/ReasBook/Papers/DFP_wolfe_local/README.md)
 describes the scope and lists the main theorem declarations.
 
-The following table links selected paper results to their Lean declarations.
+The revised polar construction has not yet been formalized. The table, theorem
+map, and walkthrough below refer to the earlier construction and numbering.
 
 | Paper reference | Lean formalization |
 | --- | --- |
@@ -107,8 +111,7 @@ The following table links selected paper results to their Lean declarations.
 | Lemma 11 | [Secant degeneration and vanishing smallest eigenvalue](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/SecantDegeneration.lean#L726) |
 | Equation (73) | [Sharpness of the $1/2$-Hölder exponent](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/HolderSharpness.lean#L406) |
 
-The theorem map covers all numbered results. Click the image to open the
-interactive paper view.
+Click the theorem map to open the interactive paper view.
 
 [![Theorem dependency map for the DFP paper](docs/assets/dfp_theorem_map.png)](https://optpku.github.io/ReasBook/theorem-maps/papers/dfp_wolfe_local/?view=paper)
 
