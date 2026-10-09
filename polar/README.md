@@ -1,7 +1,7 @@
 # Polar DFP experiments
 
 MATLAB implementation of the prescribed cubic-root polar construction and the
-finite-function comparisons in Sections 6.1–6.2.
+finite-function comparisons in Sections 7.1–7.2.
 
 ## Requirements
 
@@ -43,13 +43,19 @@ run_polar_experiments('figures');
 - `certify_finite.m`: exact separation and Hessian-bound checks for stored data.
 - `make_polar_figures.m`: figure export.
 
-The prescribed recurrence uses fixed step lengths and does not perform a line
-search. A common scale sets the final recorded radius to one. The DFP and BFGS
-comparisons use fixed finite interpolants and MATLAB's native line search and
+The prescribed recurrence is evaluated directly, without a line search.
+A common scale sets the final recorded radius to one. The dashed unit circle
+marks this normalized terminal radius. The DFP and BFGS comparisons use fixed
+finite interpolants and MATLAB's native line search and
 update safeguards. Both solvers retain the prescribed initial search direction
 through the same linear change of variables. Figure 1 pairs the prescribed
-DFP sequence with the BFGS iterates on the finite interpolant with J = 400^3;
-the two panels come from the respective experiments in Sections 6.1 and 6.2.
+DFP sequence at J = 32^3 with the BFGS iterates on the finite interpolant at
+J = 400^3; the two panels come from the respective experiments in Sections 7.1
+and 7.2. Their titles are “Prescribed DFP recurrence” and “BFGS on a finite
+interpolant”. Figure 2 compares the solvers for `J = 400^3`; Table 2 reports
+both methods for each of the two finite interpolants.
+The `figures` mode only redraws stored data and
+does not rerun the recurrence, solvers, or certificates.
 
 Native non-descent-direction errors are recorded with the last accepted
 iterate; other exceptions are rethrown. Solver termination is reported

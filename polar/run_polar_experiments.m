@@ -10,7 +10,11 @@ if nargin<2,outputDir=fullfile(sourceDir,'results');end
 if ~isfolder(outputDir),mkdir(outputDir);end
 previousPath=path;restorePath=onCleanup(@()path(previousPath));
 addpath(sourceDir);previous=pwd;cd(outputDir);cleanup=onCleanup(@()cd(previous));
-if strcmp(mode,'all')&&isfile('complete.json'),delete('complete.json');end
+if strcmp(mode,'all')
+    for stale={'complete.json','certificate.json','finite_200_certificate.json'}
+        if isfile(stale{1}),delete(stale{1});end
+    end
+end
 if strcmp(mode,'smoke')&&isfile('smoke.json'),delete('smoke.json');end
 if any(strcmp(mode,{'all','figures'}))&&isfile('figures_complete.json'),delete('figures_complete.json');end
 if strcmp(mode,'figures'),make_polar_figures;return,end

@@ -13,7 +13,7 @@ authors:
   given-names: Yaxiang
 - family-names: Zhang
   given-names: Liwei
-version: 0.2.0
+version: 0.2.1
 repository-code: https://github.com/bqliu815/DFP-Counterexample
 license: MIT
 keywords:
@@ -33,10 +33,10 @@ preferred-citation:
     given-names: Zichen
   - family-names: Wen
     given-names: Zaiwen
-  - family-names: Zhang
-    given-names: Liwei
   - family-names: Yuan
     given-names: Yaxiang
+  - family-names: Zhang
+    given-names: Liwei
   year: 2026
   journal: arXiv
   doi: 10.48550/arXiv.2608.21708

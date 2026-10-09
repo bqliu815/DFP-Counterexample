@@ -5,6 +5,9 @@ This repository provides MATLAB code for the paper
 *[A counterexample to global convergence of classical DFP under the standard
 strong Wolfe conditions](https://arxiv.org/abs/2608.21708)*.
 
+The code follows the revised manuscript; the linked arXiv preprint describes
+the earlier construction.
+
 Uniform convexity alone does not guarantee global convergence of classical
 DFP under the standard strong Wolfe conditions. The paper gives a
 two-dimensional $C^2$ counterexample whose gradient norms converge to a
@@ -14,13 +17,13 @@ $C^2$ objective functions in two dimensions when the Hessian is locally
 Lipschitz continuous near the initial level set.
 
 The MATLAB code implements the polar construction and reproduces the numerical
-experiments in Sections 6.1–6.2 of the revised manuscript. The prescribed
+experiments in Sections 7.1–7.2 of the revised manuscript. The prescribed
 two-step recurrence is evaluated directly. The DFP and BFGS
 comparisons use MATLAB's `fminunc` on fixed finite objective functions
 formed by local interpolation.
 
 Lean formalization:
-https://github.com/optpku/ReasBook/tree/v4.32.0/ReasBook/Papers/DFP_wolfe_local/
+https://github.com/optpku/ReasBook/tree/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/
 
 Project on ReasLab:
 https://reaslab.io/share/fqxVBj9GRaqFajkYxVtyXQR1210a9.MTc.YWxs
@@ -97,19 +100,22 @@ locally and excluded from version control.
 The existing Lean 4 formalization covers the earlier nonconvergence construction, its Hölder
 regularity, extensions to higher dimensions and identity initialization, and
 planar convergence with a locally Lipschitz continuous Hessian. The
-[formalization README](https://github.com/optpku/ReasBook/blob/v4.32.0/ReasBook/Papers/DFP_wolfe_local/README.md)
+[formalization README](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/README.md)
 describes the scope and lists the main theorem declarations.
 
-The revised polar construction has not yet been formalized. The table, theorem
-map, and walkthrough below refer to the earlier construction and numbering.
+The polar construction in Sections 3–4 and its near-identity Hessian
+strengthening have not yet been formalized. The counterexample links
+below refer to the earlier construction. The table uses the current
+manuscript's numbering; the theorem map and walkthrough retain the
+earlier numbering.
 
-| Paper reference | Lean formalization |
+| Revised manuscript reference and scope | Lean formalization |
 | --- | --- |
-| Theorem 1 | [Strong Wolfe counterexample with a globally $1/2$-Hölder Hessian](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/HolderSharpness.lean#L406) |
-| Corollary 2 | [Identity initialization with Hölder regularity](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/Holder.lean#L107) |
-| Theorem 3 | [Planar convergence under weak Wolfe conditions](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/Main.lean#L198); [Planar convergence under strong Wolfe conditions](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/Main.lean#L223) |
-| Lemma 11 | [Secant degeneration and vanishing smallest eigenvalue](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/SecantDegeneration.lean#L726) |
-| Equation (73) | [Sharpness of the $1/2$-Hölder exponent](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/HolderSharpness.lean#L406) |
+| Theorem 1: earlier counterexample construction | [Strong Wolfe counterexample with a globally $1/2$-Hölder Hessian](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/HolderSharpness.lean#L406) |
+| Corollary 2: extension of the earlier construction | [Identity initialization with Hölder regularity](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/Holder.lean#L107) |
+| Theorem 3 (proof in Section 5) | [Planar convergence under weak Wolfe conditions](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/Main.lean#L198); [Planar convergence under strong Wolfe conditions](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/Main.lean#L223) |
+| Lemma 7 (historical Lean numbering: Lemma 11) | [Secant degeneration and vanishing smallest eigenvalue](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/SecantDegeneration.lean#L726) |
+| Hessian Hölder sharpness for the earlier construction | [Sharpness of the $1/2$-Hölder exponent](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/HolderSharpness.lean#L406) |
 
 Click the theorem map to open the interactive paper view.
 
@@ -118,8 +124,8 @@ Click the theorem map to open the interactive paper view.
 Interactive theorem map:
 https://optpku.github.io/ReasBook/theorem-maps/papers/dfp_wolfe_local/?view=paper
 
-A short walkthrough shows how to compare Theorem 1 with its Lean statement,
-inspect the strong Wolfe conditions, and navigate definitions in ReasLab:
+A short walkthrough compares the earlier Theorem 1 with its Lean statement,
+inspects the strong Wolfe conditions, and navigates definitions in ReasLab:
 
 https://github.com/user-attachments/assets/05377f12-3f84-4915-98bf-e1aa71c52507
 
@@ -147,7 +153,7 @@ If you use this code, please cite:
 ```bibtex
 @misc{LiuEtAl2026DFP,
   author = {Benqi Liu and Zichen Wang and Zaiwen Wen and
-            Liwei Zhang and Yaxiang Yuan},
+            Yaxiang Yuan and Liwei Zhang},
   title  = {A counterexample to global convergence of classical {DFP}
             under the standard strong {Wolfe} conditions},
   year   = {2026},

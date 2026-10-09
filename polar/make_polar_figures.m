@@ -34,7 +34,7 @@ function make_polar_figures
             plot(ax, o.x(1, 1), o.x(1, 2), 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 3, 'HandleVisibility', 'off');
             plot(ax, o.x(end, 1), o.x(end, 2), 's', 'Color', blue, ...
                 'MarkerFaceColor', 'w', 'MarkerSize', 3.5, 'HandleVisibility', 'off');
-            title(ax, '(a) DFP: $100{,}000$ cycles', 'FontWeight', 'normal', 'FontSize', 8);
+            title(ax, '(a) Prescribed DFP recurrence', 'FontWeight', 'normal', 'FontSize', 8);
         else
             xx = [b.trace.x1, b.trace.x2];
             h_circle = plot(ax, circle(:, 1), circle(:, 2), '--', ...
@@ -44,7 +44,7 @@ function make_polar_figures
                 'DisplayName', 'BFGS');
             plot(ax, xx(1, 1), xx(1, 2), 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 3, 'HandleVisibility', 'off');
             plot(ax, xx(end, 1), xx(end, 2), 'k*', 'MarkerSize', 6, 'HandleVisibility', 'off');
-            title(ax, sprintf('(b) BFGS: %d iterations', b.summary.iterations), 'FontWeight', 'normal', 'FontSize', 8);
+            title(ax, '(b) BFGS on a finite interpolant', 'FontWeight', 'normal', 'FontSize', 8);
         end
         lg = legend(ax, [h_method, h_circle], 'Location', 'northeast', 'FontSize', 9, 'Box', 'on');
         set(lg, 'Color', 'w', 'TextColor', 'k', 'EdgeColor', [.3, .3, .3]);
@@ -74,7 +74,6 @@ function make_polar_figures
         'FontSize', 8, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', ...
         'LineWidth', .5, 'XTickLabelRotation', 0);
     box(detail, 'on');
-    title(detail, 'Detail', 'FontSize', 8, 'FontWeight', 'normal');
     annotation(fig, 'arrow', [.3025, .3025], [.25417, .397], ...
         'Color', [.25, .25, .25], 'LineWidth', .55, ...
         'HeadLength', 4, 'HeadWidth', 4);

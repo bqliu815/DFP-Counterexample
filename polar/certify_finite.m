@@ -1,6 +1,8 @@
 function cert=certify_finite(stem)
 % SPDX-License-Identifier: MIT
 if nargin<1,stem='finite';end
+if strcmp(stem,'finite'),path='certificate.json';else,path=[stem,'_certificate.json'];end
+if isfile(path),delete(path);end
 load([stem,'.mat'],'objective','finiteOrbit');
 D=[objective.points,objective.corrections,objective.radii];
 S=sym(D,'f');
@@ -20,6 +22,5 @@ cert=struct('status','exact_dyadic_checks_passed','points',size(D,1), ...
     'separation','disjoint projections on the second coordinate', ...
     'data_interpretation','stored binary64 values treated as exact dyadic rationals', ...
     'minimum_projection_margin',double(min(gap)),'matlab',version);
-if strcmp(stem,'finite'),path='certificate.json';else,path=[stem,'_certificate.json'];end
 PolarDFP.writeJSON(path,cert);disp(cert);
 end

@@ -102,7 +102,7 @@ function result=solve(obj,o,method,maxIter)
         [zz,fval,flag,out]=fminunc(@evaluate,[0;0],opts);
     catch err
         if ~strcmp(err.identifier,'optim:lineSearch:FPrimeInitialNeg'),rethrow(err);end
-        zz=lastZ;[fval,~]=evaluate(zz);flag=NaN;caught=err.message;
+        zz=lastZ;fval=PolarDFP.valueGrad(obj,x0+L*zz);flag=NaN;caught=err.message;
         out=struct('iterations',trace(max(1,nr),1),'funcCount',neval,'message',err.message,'identifier',err.identifier);
     end
     elapsed=toc(started);xx=x0+L*zz;[fv,gg]=PolarDFP.valueGrad(obj,xx);
@@ -121,7 +121,8 @@ function result=solve(obj,o,method,maxIter)
         lastZ=zz;xx=x0+L*zz;[ff,gg]=PolarDFP.valueGrad(obj,xx);
         stop=norm(gg)<=tol||values.iteration>=maxIter;
         if strcmp(state,'iter')||strcmp(state,'init')
-            nr=nr+1;trace(nr,:)=[values.iteration,ff,norm(gg),xx'];
+            if nr==0||trace(nr,1)~=values.iteration,nr=nr+1;end
+            trace(nr,:)=[values.iteration,ff,norm(gg),xx'];
         end
     end
 end

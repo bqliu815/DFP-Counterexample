@@ -84,6 +84,9 @@ function testBFGSFinalGradientAndTrace(testCase)
     verifyLessThanOrEqual(testCase, norm(finalGradient), 1e-10);
     verifyEqual(testCase, result.summary.final_gradient_norm, norm(finalGradient), 'AbsTol', 1e-14);
     verifyGreaterThan(testCase, height(result.trace), 1);
+    verifyEqual(testCase, sum(result.trace.iteration == 0), 1);
+    verifyTrue(testCase, all(diff(result.trace.iteration) > 0));
+    verifyEqual(testCase, [result.trace.x1(end); result.trace.x2(end)], result.x, 'AbsTol', 1e-14);
     verifyEqual(testCase, [result.trace.x1(1), result.trace.x2(1)], orbit.x(1, :), 'AbsTol', 1e-14);
     for k = 1:height(result.trace)
         x = [result.trace.x1(k); result.trace.x2(k)];
@@ -91,6 +94,32 @@ function testBFGSFinalGradientAndTrace(testCase)
         verifyEqual(testCase, result.trace.function_value(k), f, 'AbsTol', 1e-14);
         verifyEqual(testCase, result.trace.gradient_norm(k), norm(g), 'AbsTol', 1e-14);
     end
+end
+
+function testDFPShortRun(testCase)
+    objective = testCase.TestData.objective;
+    orbit = testCase.TestData.orbit;
+    result = PolarDFP.solve(objective, orbit, 'dfp', 3);
+    [f, g] = PolarDFP.valueGrad(objective, result.x);
+    verifyEqual(testCase, result.summary.method, 'dfp');
+    verifyEqual(testCase, result.summary.status, 'iteration_limit');
+    verifyEqual(testCase, result.summary.iterations, 3);
+    verifyEqual(testCase, result.trace.iteration, (0:3)');
+    verifyEqual(testCase, [result.trace.x1(end); result.trace.x2(end)], result.x, 'AbsTol', 1e-14);
+    verifyEqual(testCase, result.trace.function_value(end), f, 'AbsTol', 1e-14);
+    verifyEqual(testCase, result.trace.gradient_norm(end), norm(g), 'AbsTol', 1e-14);
+    verifyEqual(testCase, result.summary.final_gradient_norm, norm(g), 'AbsTol', 1e-14);
+end
+
+function testFailedCertificateRemovesOldResult(testCase)
+    folder = tempname(tempdir);
+    mkdir(folder);
+    cleanup = onCleanup(@()rmdir(folder, 's'));
+    stem = fullfile(folder, 'missing');
+    certificatePath = [stem, '_certificate.json'];
+    PolarDFP.writeJSON(certificatePath, struct('status', 'exact_dyadic_checks_passed'));
+    verifyError(testCase, @()certify_finite(stem), 'MATLAB:load:couldNotReadFile');
+    verifyFalse(testCase, isfile(certificatePath));
 end
 
 function testEntryPointPreservesSession(testCase)
