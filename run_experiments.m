@@ -1,10 +1,11 @@
 function outDir = run_experiments(mode, outDir)
 % RUN_EXPERIMENTS Reproduce the polar DFP counterexample experiments.
 %   Default: 'smoke'. Use 'all' for the complete paper protocol.
-%   Other modes: 'test', 'certify', 'figures'.
+%   Other modes: 'test', 'wolfe', 'scales', 'certify', 'figures'.
+%   'scales' varies beta in the prescribed recurrence without finite solvers.
 % SPDX-License-Identifier: MIT
 if nargin < 1, mode = 'smoke'; end
-mode = validatestring(mode, {'smoke', 'all', 'test', 'certify', 'figures'});
+mode = validatestring(mode, {'smoke', 'all', 'test', 'wolfe', 'scales', 'certify', 'figures'});
 repoDir = fileparts(mfilename('fullpath'));
 if nargin < 2 || isempty(outDir)
     if strcmp(mode, 'smoke')

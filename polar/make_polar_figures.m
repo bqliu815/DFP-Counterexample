@@ -109,6 +109,9 @@ function make_polar_figures
     exportgraphics(fig, fullfile(figDir, 'Fig2.pdf'), 'ContentType', 'vector');
     exportgraphics(fig, fullfile(figDir, 'Fig2.png'), 'Resolution', 300);
     close(fig);
+    if all(arrayfun(@(k)isfile(sprintf('exponent_case_%d.mat',k)),1:3))
+        make_scaling_figure;
+    end
     completed = struct('created', true, 'software', version, ...
                        'source', 'Stored MATLAB iterate data', 'smoothing', false, ...
                        'circle_radius', 1, 'bfgs_iterations', b.summary.iterations);

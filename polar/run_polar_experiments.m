@@ -2,9 +2,10 @@ function run_polar_experiments(mode, outputDir)
 % SPDX-License-Identifier: MIT
 % RUN_POLAR_EXPERIMENTS Reproduce the prescribed polar DFP experiments.
 %   run_polar_experiments('all') runs both comparisons and exact certificates.
-%   'smoke', 'certify', and 'figures' select the corresponding stages.
+%   'scales' runs only the three beta recurrence diagnostics and their figure.
+%   'smoke', 'wolfe', 'certify', and 'figures' select the corresponding stages.
 if nargin<1,mode='all';end
-mode=validatestring(mode,{'all','smoke','certify','figures'});
+mode=validatestring(mode,{'all','smoke','wolfe','scales','certify','figures'});
 sourceDir=fileparts(mfilename('fullpath'));
 if nargin<2,outputDir=fullfile(sourceDir,'results');end
 if ~isfolder(outputDir),mkdir(outputDir);end
@@ -19,6 +20,43 @@ if strcmp(mode,'smoke')&&isfile('smoke.json'),delete('smoke.json');end
 if any(strcmp(mode,{'all','figures'}))&&isfile('figures_complete.json'),delete('figures_complete.json');end
 if strcmp(mode,'figures'),make_polar_figures;return,end
 if strcmp(mode,'certify'),certify_finite;certify_finite('finite_200');return,end
+if any(strcmp(mode,{'all','wolfe'}))
+    pairs=[.25,.75;.2,.3;.8,.9];
+    for caseIndex=1:size(pairs,1)
+        if caseIndex==1
+            base=2*pi/9;
+            pars=PolarDFP.parameters(2*base,base,1.03*base,.5,pairs(caseIndex,1),pairs(caseIndex,2));
+            stem='wolfe_reference';
+        else
+            pars=PolarDFP.wolfeParameters(pairs(caseIndex,1),pairs(caseIndex,2),.5);
+            stem=sprintf('wolfe_case_%d',caseIndex-1);
+        end
+        diagnostic=PolarDFP.orbit(10000,400^3,pars);
+        assert(diagnostic.summary.armijo_failures==0 && diagnostic.summary.strong_failures==0);
+        assert(diagnostic.summary.max_update_residual<1e-10);
+        PolarDFP.writeJSON([stem,'.json'],diagnostic.summary);
+        save([stem,'.mat'],'diagnostic','-v7.3');
+    end
+    if strcmp(mode,'wolfe'),return,end
+end
+if any(strcmp(mode,{'all','scales'}))
+    % Vary beta alone, retaining the representative geometric shape and Wolfe pair.
+    betas=[1/3,1/2,2/3];base=2*pi/9;
+    for caseIndex=1:numel(betas)
+        pars=PolarDFP.parameters(2*base,base,1.03*base,betas(caseIndex),.25,.75);
+        diagnostic=scaling_diagnostics(10000000,32^3,pars);
+        assert(diagnostic.summary.armijo_failures==0 && diagnostic.summary.strong_failures==0);
+        assert(diagnostic.summary.sampled_max_update_residual<1e-10);
+        assert(all(isfinite(diagnostic.ratio_radial)) && all(diagnostic.ratio_radial>0));
+        assert(all(isfinite(diagnostic.ratio_correction)) && all(diagnostic.ratio_correction>0));
+        stem=sprintf('exponent_case_%d',caseIndex);
+        PolarDFP.writeJSON([stem,'.json'],diagnostic.summary);
+        save([stem,'.mat'],'diagnostic','-v7.3');
+    end
+    PolarDFP.writeJSON('scales_environment.json',struct('matlab',version, ...
+        'architecture',computer,'threads',maxNumCompThreads,'precision','IEEE 754 binary64'));
+    if strcmp(mode,'scales'),make_scaling_figure;return,end
+end
 if strcmp(mode,'smoke')
     o=PolarDFP.orbit(200,400^3,1.03);obj=PolarDFP.finite(o);
     r=PolarDFP.solve(obj,o,'bfgs',100);

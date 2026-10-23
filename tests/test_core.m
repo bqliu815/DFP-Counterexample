@@ -49,6 +49,101 @@ function testInterpolationAtNodes(testCase)
     end
 end
 
+function testNewFeedbackAndGeneralWolfe(testCase)
+    for pair=[.2,.8;.3,.9]
+        pars=PolarDFP.wolfeParameters(pair(1),pair(2),.5);
+        orbit=PolarDFP.orbit(40,400^3,pars);
+        expected=pars.p*pars.gamma./(orbit.A(1:end-1).*orbit.nu*(1/pars.a+1/pars.b));
+        verifyEqual(testCase,orbit.phi,expected,'RelTol',1e-14);
+        verifyEqual(testCase,orbit.summary.armijo_failures,0);
+        verifyEqual(testCase,orbit.summary.strong_failures,0);
+        verifyLessThan(testCase,orbit.summary.max_update_residual,1e-10);
+        inverse=(pars.b-pars.a+2*orbit.nu)./(orbit.nu.*(pars.a-orbit.nu).*(pars.b+orbit.nu));
+        verifyEqual(testCase,inverse,orbit.A(1:end-1),'RelTol',2e-13);
+    end
+end
+
+function testBetaRecurrenceAndScalingRatios(testCase)
+    % Three exponents share a single shape, Wolfe pair, and cycle index range.
+    % Direct coordinate differences independently check the stable diagnostics.
+    N=80;J=32^3;base=2*pi/9;indices=J+(0:N-1)';
+    for beta=[1/3,1/2,2/3]
+        pars=PolarDFP.parameters(2*base,base,1.03*base,beta,.25,.75);
+        orbit=PolarDFP.orbit(N,J,pars);
+        verifyEqual(testCase,orbit.parameters.beta,beta);
+        verifyEqual(testCase,orbit.parameters.p,1/(1+beta),'RelTol',2*eps);
+        verifyEqual(testCase,orbit.summary.nu_over_b,1.03,'RelTol',2*eps);
+        verifyEqual(testCase,orbit.tau,(J+(0:N)').^(-pars.p),'RelTol',2*eps);
+        expectedAngles=((indices+1).^(1-pars.p)-indices.^(1-pars.p))/(1-pars.p);
+        verifyEqual(testCase,orbit.delta(1:2:end)/pars.a,expectedAngles,'RelTol',1e-10);
+        verifyEqual(testCase,orbit.delta(2:2:end)/pars.b,expectedAngles,'RelTol',1e-10);
+        verifyEqual(testCase,orbit.summary.armijo_failures,0);
+        verifyEqual(testCase,orbit.summary.strong_failures,0);
+        verifyLessThan(testCase,orbit.summary.max_secant_residual,1e-10);
+        verifyLessThan(testCase,orbit.summary.max_update_residual,1e-10);
+        verifySize(testCase,orbit.ratio_radial,[N,1]);
+        verifySize(testCase,orbit.ratio_correction,[N,1]);
+        verifyTrue(testCase,all(isfinite(orbit.ratio_radial)));
+        verifyTrue(testCase,all(isfinite(orbit.ratio_correction)));
+        verifyGreaterThan(testCase,min(orbit.ratio_radial),0);
+        verifyGreaterThan(testCase,min(orbit.ratio_correction),0);
+
+        denominator=(orbit.targets.D0+orbit.targets.D1)*orbit.tau(1:end-1).^2;
+        directRadial=log(orbit.r(1:2:end-2)./orbit.r(3:2:end))./denominator;
+        directCorrection=indices.*(1-orbit.zeta(2:2:end))/orbit.targets.L;
+        % The direct forms lose O(eps/tau^2) and O(n_j*eps/L), respectively.
+        verifyEqual(testCase,orbit.ratio_radial,directRadial, ...
+            'AbsTol',32*eps/min(denominator));
+        verifyEqual(testCase,orbit.ratio_correction,directCorrection, ...
+            'AbsTol',4*eps*max(indices)/orbit.targets.L);
+        verifyEqual(testCase,orbit.targets.L,pars.p/(pars.nu*(1/pars.a+1/pars.b)), ...
+            'RelTol',2*eps);
+    end
+end
+
+function testStreamedScalingMatchesFullOrbit(testCase)
+    % The storage reduction must preserve the recurrence and exact extrema.
+    N=1000;J=32^3;base=2*pi/9;
+    for beta=[1/3,1/2,2/3]
+        pars=PolarDFP.parameters(2*base,base,1.03*base,beta,.25,.75);
+        full=PolarDFP.orbit(N,J,pars);compact=scaling_diagnostics(N,J,pars);
+        indices=compact.cycle+1;
+        verifyEqual(testCase,compact.ratio_radial,full.ratio_radial(indices),'AbsTol',1e-13);
+        verifyEqual(testCase,compact.ratio_correction,full.ratio_correction(indices),'AbsTol',1e-13);
+        verifyEqual(testCase,compact.gamma,full.A(indices),'AbsTol',1e-13);
+        verifyEqual(testCase,compact.phi,full.phi(indices),'AbsTol',1e-13);
+        [value,index]=max(full.ratio_radial);
+        verifyEqual(testCase,compact.summary.max_ratio_radial,value,'AbsTol',1e-13);
+        verifyEqual(testCase,compact.summary.peak_radial_cycle,index-1);
+        [value,index]=max(full.ratio_correction);
+        verifyEqual(testCase,compact.summary.max_ratio_correction,value,'AbsTol',1e-13);
+        verifyEqual(testCase,compact.summary.peak_correction_cycle,index-1);
+        verifyEqual(testCase,compact.summary.final_gamma,full.A(end),'AbsTol',1e-13);
+        verifyEqual(testCase,compact.summary.armijo_failures,full.summary.armijo_failures);
+        verifyEqual(testCase,compact.summary.strong_failures,full.summary.strong_failures);
+        verifyEqual(testCase,compact.summary.min_armijo,full.summary.min_armijo,'AbsTol',1e-13);
+        verifyEqual(testCase,compact.summary.max_strong,full.summary.max_strong,'AbsTol',1e-13);
+        verifyLessThan(testCase,compact.summary.sampled_max_secant_residual,1e-10);
+        verifyLessThan(testCase,compact.summary.sampled_max_update_residual,1e-10);
+        verifyEqual(testCase,compact.cycle([1,end]),[0;N-1]);
+    end
+end
+
+function testScalingAcrossBlockBoundary(testCase)
+    % Carrying the matrix into the next scale block must preserve the path.
+    N=100005;J=32^3;base=2*pi/9;
+    pars=PolarDFP.parameters(2*base,base,1.03*base,.5,.25,.75);
+    full=PolarDFP.orbit(N,J,pars);compact=scaling_diagnostics(N,J,pars);
+    indices=compact.cycle+1;
+    verifyEqual(testCase,compact.ratio_radial,full.ratio_radial(indices),'AbsTol',1e-13);
+    verifyEqual(testCase,compact.ratio_correction,full.ratio_correction(indices),'AbsTol',1e-13);
+    verifyEqual(testCase,compact.gamma,full.A(indices),'AbsTol',1e-13);
+    verifyEqual(testCase,compact.phi,full.phi(indices),'AbsTol',1e-13);
+    verifyEqual(testCase,compact.summary.final_gamma,full.A(end),'AbsTol',1e-13);
+    verifyEqual(testCase,compact.summary.final_ratio_radial,full.ratio_radial(end),'AbsTol',1e-13);
+    verifyEqual(testCase,compact.summary.final_ratio_correction,full.ratio_correction(end),'AbsTol',1e-13);
+end
+
 function testGradientInsideTransition(testCase)
     % The larger scale keeps the cutoff correction above subtraction noise.
     orbit = PolarDFP.orbit(20, 32^3, 1.03);

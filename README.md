@@ -17,13 +17,19 @@ $C^2$ objective functions in two dimensions when the Hessian is locally
 Lipschitz continuous near the initial level set.
 
 The MATLAB code implements the polar construction and reproduces the numerical
-experiments in Sections 7.1–7.2 of the revised manuscript. The prescribed
+experiments in Sections 6.1–6.2 of the revised manuscript. The prescribed
 two-step recurrence is evaluated directly. The DFP and BFGS
 comparisons use MATLAB's `fminunc` on fixed finite objective functions
 formed by local interpolation.
 
+The recurrence uses the feedback
+`phi = p*gamma_star/(gamma*nu(gamma)*(1/a+1/b))`, with `p=1/(1+beta)`.
+The geometry and finite-function comparisons use the `2:1` angle coefficients
+and `beta=1/2`. Separate recurrence diagnostics compare `beta=1/3,1/2,2/3`
+and three strong Wolfe parameter pairs.
+
 Lean formalization:
-https://github.com/optpku/ReasBook/tree/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/
+https://github.com/optpku/ReasBook/tree/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/
 
 Project on ReasLab:
 https://reaslab.io/share/fqxVBj9GRaqFajkYxVtyXQR1210a9.MTc.YWxs
@@ -35,13 +41,15 @@ https://reaslab.io/share/fqxVBj9GRaqFajkYxVtyXQR1210a9.MTc.YWxs
 | `polar/PolarDFP.m` | Polar recurrence, finite interpolation, and DFP/BFGS solvers |
 | `polar/run_polar_experiments.m` | Numerical experiments and exact certificates |
 | `polar/certify_finite.m` | Support separation and global Hessian bounds |
-| `polar/make_polar_figures.m` | Figure generation, including the DFP detail inset |
+| `polar/make_polar_figures.m` | Trajectory and solver figures, including the DFP detail inset |
+| `polar/scaling_diagnostics.m` | Long-run recurrence diagnostics with sampled output |
+| `polar/make_scaling_figure.m` | Radial decrease and gradient-correction diagnostics |
 | `run_experiments.m` | Entry point for tests and paper experiments |
 | `tests/` | Tests of the recurrence, interpolation, solver, and entry point |
 
 ## Installation
 
-The reference experiments use MATLAB R2025a Update 1 with Optimization Toolbox and
+The reference experiments use MATLAB R2025a with Optimization Toolbox and
 Statistics and Machine Learning Toolbox. Symbolic Math Toolbox is also
 required for the exact certificates (`certify` and `all`).
 
@@ -70,14 +78,40 @@ dfp.summary
 bfgs.summary
 ```
 
+For a different fixed standard strong Wolfe pair, select a stable shape and
+check a finite prescribed prefix with:
+
+```matlab
+pars = PolarDFP.wolfeParameters(0.2, 0.3, 0.5);
+orbit = PolarDFP.orbit(10000, 400^3, pars);
+orbit.summary
+run_experiments('wolfe'); % checks (0.25,0.75), (0.2,0.3), and (0.8,0.9)
+```
+
+The starting index must be sufficiently large for the selected parameters.
+The routine reports the actual endpoint ratios and fails if the matrix or
+local inverse branch becomes invalid. Binary64 finite-prefix checks do not
+prove the infinite construction.
+
 Both methods use the same linear change of variables to retain the initial
 search direction determined by the prescribed inverse Hessian approximation.
 MATLAB's internal line search and update safeguards are retained.
 
 ## Reproducing the numerical experiments
 
-The complete run generates the trajectories, certifies the Hessian bounds,
-and exports the figures:
+To run only the three-exponent comparison in Section 6.1:
+
+```matlab
+run_experiments('scales');
+```
+
+This keeps the angle coefficients and Wolfe pair fixed, updates the feedback
+for each exponent, and executes 10,000,000 cycles per case. The two panels
+plot radial and gradient-correction ratios on a logarithmic cycle axis.
+Every cycle is evaluated; only the saved output and residual checks are sampled.
+
+The complete run generates all recurrence diagnostics and solver trajectories,
+certifies the Hessian bounds, and exports the three numerical figures:
 
 ```matlab
 run_experiments('all');
@@ -97,25 +131,23 @@ locally and excluded from version control.
 
 ## Formal verification
 
-The existing Lean 4 formalization covers the earlier nonconvergence construction, its Hölder
-regularity, extensions to higher dimensions and identity initialization, and
-planar convergence with a locally Lipschitz continuous Hessian. The
-[formalization README](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/README.md)
-describes the scope and lists the main theorem declarations.
+The linked Lean 4 snapshot covers an earlier polar construction with Hessian
+Hölder exponent `1/2`, the planar convergence theorem, and the center-manifold
+analysis. It does not cover the general Hölder-exponent extension, the new
+feedback, or the full strong Wolfe parameter range in the revised manuscript.
+The table identifies the scope of each entry. The theorem map and video
+walkthrough retain the earlier numbering.
 
-The polar construction in Sections 3–4 and its near-identity Hessian
-strengthening have not yet been formalized. The counterexample links
-below refer to the earlier construction. The table uses the current
-manuscript's numbering; the theorem map and walkthrough retain the
-earlier numbering.
-
-| Revised manuscript reference and scope | Lean formalization |
+| Manuscript reference and scope | Lean formalization |
 | --- | --- |
-| Theorem 1: earlier counterexample construction | [Strong Wolfe counterexample with a globally $1/2$-Hölder Hessian](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/HolderSharpness.lean#L406) |
-| Corollary 2: extension of the earlier construction | [Identity initialization with Hölder regularity](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/Holder.lean#L107) |
-| Theorem 3 (proof in Section 5) | [Planar convergence under weak Wolfe conditions](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/Main.lean#L198); [Planar convergence under strong Wolfe conditions](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/Main.lean#L223) |
-| Lemma 7 (historical Lean numbering: Lemma 11) | [Secant degeneration and vanishing smallest eigenvalue](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/SecantDegeneration.lean#L726) |
-| Hessian Hölder sharpness for the earlier construction | [Sharpness of the $1/2$-Hölder exponent](https://github.com/optpku/ReasBook/blob/cfabd0d50e7d1e3007a755878841072b0ea00063/ReasBook/Papers/DFP_wolfe_local/ReasLib/Optimization/DFP/WolfeCounterexample/HolderSharpness.lean#L406) |
+| Theorem 1: earlier polar counterexample | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/Main.lean#L27) |
+| Corollary 2: identity initialization for the earlier construction | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/IdentityInitialization.lean#L53) |
+| Theorem 3: planar convergence | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/PlanarConvergence.lean#L100) |
+| Lemma 4: continuation of the earlier recurrence | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/PolarConstruction.lean#L35) |
+| Lemma 5: geometry of the earlier recurrence | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/PolarConstruction.lean#L102) |
+| Lemma 6: interpolation for the earlier construction | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/PolarConstruction.lean#L193) |
+| Lemma 7: secant degeneration | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/SecantDegeneration.lean#L49) |
+| Earlier center-manifold analysis | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/CenterManifold.lean#L2068) |
 
 Click the theorem map to open the interactive paper view.
 
@@ -135,7 +167,7 @@ toolchain manager installed, run:
 ```sh
 git clone --branch v4.32.0 https://github.com/optpku/ReasBook.git
 cd ReasBook
-git checkout cfabd0d50e7d1e3007a755878841072b0ea00063
+git checkout f40e785158f79d8f0e645890825b840af912e327
 cd ReasBook
 lake exe cache get
 lake lean Papers/DFP_wolfe_local/Paper.lean
