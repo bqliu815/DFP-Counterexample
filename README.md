@@ -17,7 +17,7 @@ $C^2$ objective functions in two dimensions when the Hessian is locally
 Lipschitz continuous near the initial level set.
 
 The MATLAB code implements the polar construction and reproduces the numerical
-experiments in Sections 6.1–6.2 of the revised manuscript. The prescribed
+experiments in Sections 5.1–5.2 of the revised manuscript. The prescribed
 two-step recurrence is evaluated directly. The DFP and BFGS
 comparisons use MATLAB's `fminunc` on fixed finite objective functions
 formed by local interpolation.
@@ -99,7 +99,7 @@ MATLAB's internal line search and update safeguards are retained.
 
 ## Reproducing the numerical experiments
 
-To run only the three-exponent comparison in Section 6.1:
+To run only the three-exponent comparison in Section 5.1:
 
 ```matlab
 run_experiments('scales');
@@ -138,7 +138,7 @@ feedback, or the full strong Wolfe parameter range in the revised manuscript.
 The table identifies the scope of each entry. The theorem map and video
 walkthrough retain the earlier numbering.
 
-| Manuscript reference and scope | Lean formalization |
+| Earlier manuscript reference and scope | Lean formalization |
 | --- | --- |
 | Theorem 1: earlier polar counterexample | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/Main.lean#L27) |
 | Corollary 2: identity initialization for the earlier construction | [Statement and proof](https://github.com/optpku/ReasBook/blob/f40e785158f79d8f0e645890825b840af912e327/ReasBook/Papers/DFP_wolfe_local/DFPWolfe/V21/IdentityInitialization.lean#L53) |

@@ -2,7 +2,7 @@
 
 MATLAB implementation of the prescribed polar construction with the
 feedback used in the manuscript and the finite-function comparisons in Sections
-6.1–6.2. The geometry and finite-solver comparisons retain the `2:1` angle
+5.1–5.2. The geometry and finite-solver comparisons retain the `2:1` angle
 shape and `beta=1/2`. Separate diagnostics vary the Hölder exponent or the
 Wolfe parameter pair.
 
@@ -57,8 +57,8 @@ finite interpolants and MATLAB's native line search and
 update safeguards. Both solvers retain the prescribed initial search direction
 through the same linear change of variables. Figure 1 pairs the prescribed
 DFP sequence at J = 32^3 with the BFGS iterates on the finite interpolant at
-J = 400^3; the two panels come from the respective experiments in Sections 6.1
-and 6.2. Their titles are “Prescribed DFP recurrence” and “BFGS on a finite
+J = 400^3; the two panels come from the respective experiments in Sections 5.1
+and 5.2. Their titles are “Prescribed DFP recurrence” and “BFGS on a finite
 interpolant”. Figure 2 compares the solvers for `J = 400^3`. Figure 3 plots
 the radial and correction ratios for three exponents at `J = 32^3` with
 10,000,000 cycles each. Every cycle is evaluated, and both ratios initially
