@@ -17,7 +17,7 @@ $C^2$ objective functions in two dimensions when the Hessian is locally
 Lipschitz continuous near the initial level set.
 
 The MATLAB code implements the polar construction and reproduces the numerical
-experiments in Sections 5.1–5.2 of the revised manuscript. The prescribed
+experiments in Sections 6.1–6.2 of the revised manuscript. The prescribed
 two-step recurrence is evaluated directly. The DFP and BFGS
 comparisons use MATLAB's `fminunc` on fixed finite objective functions
 formed by local interpolation.
@@ -99,7 +99,7 @@ MATLAB's internal line search and update safeguards are retained.
 
 ## Reproducing the numerical experiments
 
-To run only the three-exponent comparison in Section 5.1:
+To run only the three-exponent comparison in Section 6.1:
 
 ```matlab
 run_experiments('scales');
