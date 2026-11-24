@@ -1,26 +1,39 @@
 function run_polar_experiments(mode, outputDir)
 % SPDX-License-Identifier: MIT
 % RUN_POLAR_EXPERIMENTS Reproduce the prescribed polar DFP experiments.
-%   run_polar_experiments('all') runs both comparisons and exact certificates.
-%   'scales' runs only the three beta recurrence diagnostics and their figure.
-%   'smoke', 'wolfe', 'certify', and 'figures' select the corresponding stages.
-if nargin<1,mode='all';end
-mode=validatestring(mode,{'all','smoke','wolfe','scales','certify','figures'});
-sourceDir=fileparts(mfilename('fullpath'));
-if nargin<2,outputDir=fullfile(sourceDir,'results');end
+%   'paper' and 'all' reproduce the two Section 6 figures from a single orbit.
+%   'figures' and 'certify' use the saved Section 6 data in outputDir.
+%   'legacy', 'legacy-figures', 'legacy-certify', 'scales', and 'wolfe'
+%   select the earlier protocol or its individual stages.
+if nargin < 1, mode = 'all'; end
+mode = validatestring(mode, {'all', 'paper', 'figures', 'certify', 'smoke', ...
+    'legacy', 'legacy-figures', 'legacy-certify', 'wolfe', 'scales'});
+sourceDir = fileparts(mfilename('fullpath'));
+paperMode = ismember(mode, {'all', 'paper', 'figures', 'certify'});
+if nargin < 2 || isempty(outputDir)
+    if paperMode
+        outputDir = fullfile(fileparts(sourceDir), 'results', 'section6');
+    else
+        outputDir = fullfile(sourceDir, 'results');
+    end
+end
 if ~isfolder(outputDir),mkdir(outputDir);end
 previousPath=path;restorePath=onCleanup(@()path(previousPath));
 addpath(sourceDir);previous=pwd;cd(outputDir);cleanup=onCleanup(@()cd(previous));
-if strcmp(mode,'all')
+if paperMode
+    run_section6(mode);
+    return
+end
+if strcmp(mode,'legacy')
     for stale={'complete.json','certificate.json','finite_200_certificate.json'}
         if isfile(stale{1}),delete(stale{1});end
     end
 end
 if strcmp(mode,'smoke')&&isfile('smoke.json'),delete('smoke.json');end
-if any(strcmp(mode,{'all','figures'}))&&isfile('figures_complete.json'),delete('figures_complete.json');end
-if strcmp(mode,'figures'),make_polar_figures;return,end
-if strcmp(mode,'certify'),certify_finite;certify_finite('finite_200');return,end
-if any(strcmp(mode,{'all','wolfe'}))
+if any(strcmp(mode,{'legacy','legacy-figures'}))&&isfile('figures_complete.json'),delete('figures_complete.json');end
+if strcmp(mode,'legacy-figures'),make_polar_figures('legacy');return,end
+if strcmp(mode,'legacy-certify'),certify_finite;certify_finite('finite_200');return,end
+if any(strcmp(mode,{'legacy','wolfe'}))
     pairs=[.25,.75;.2,.3;.8,.9];
     for caseIndex=1:size(pairs,1)
         if caseIndex==1
@@ -39,7 +52,7 @@ if any(strcmp(mode,{'all','wolfe'}))
     end
     if strcmp(mode,'wolfe'),return,end
 end
-if any(strcmp(mode,{'all','scales'}))
+if any(strcmp(mode,{'legacy','scales'}))
     % Vary beta alone, retaining the representative geometric shape and Wolfe pair.
     betas=[1/3,1/2,2/3];base=2*pi/9;
     for caseIndex=1:numel(betas)
@@ -86,6 +99,6 @@ for rootJ=[400,200]
     save(['dfp',suffix,'.mat'],'dfp');save(['bfgs',suffix,'.mat'],'bfgs');
     certify_finite(stem);
 end
-make_polar_figures;
+make_polar_figures('legacy');
 PolarDFP.writeJSON('complete.json',struct('status','completed','matlab',version));
 end

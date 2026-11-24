@@ -1,15 +1,18 @@
 function outDir = run_experiments(mode, outDir)
 % RUN_EXPERIMENTS Reproduce the polar DFP counterexample experiments.
-%   Default: 'smoke'. Use 'all' for the complete paper protocol.
-%   Other modes: 'test', 'wolfe', 'scales', 'certify', 'figures'.
-%   'scales' varies beta in the prescribed recurrence without finite solvers.
+%   'paper' or 'all': reproduce Section 6, Figures 2 and 3, and the certificate.
+%   'figures' and 'certify' reuse the Section 6 data. Default: 'smoke'.
+%   Earlier experiments: 'legacy', 'legacy-figures', 'legacy-certify', 'scales', 'wolfe'.
 % SPDX-License-Identifier: MIT
 if nargin < 1, mode = 'smoke'; end
-mode = validatestring(mode, {'smoke', 'all', 'test', 'wolfe', 'scales', 'certify', 'figures'});
+mode = validatestring(mode, {'smoke', 'paper', 'all', 'test', 'certify', 'figures', ...
+    'legacy', 'legacy-figures', 'legacy-certify', 'wolfe', 'scales'});
 repoDir = fileparts(mfilename('fullpath'));
 if nargin < 2 || isempty(outDir)
     if strcmp(mode, 'smoke')
         outDir = fullfile(repoDir, 'results', 'smoke');
+    elseif ismember(mode, {'paper', 'all', 'figures', 'certify'})
+        outDir = fullfile(repoDir, 'results', 'section6');
     else
         outDir = fullfile(repoDir, 'results', 'paper');
     end

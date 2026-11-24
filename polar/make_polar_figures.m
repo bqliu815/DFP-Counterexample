@@ -1,11 +1,31 @@
-function make_polar_figures
+function make_polar_figures(protocol)
     % MAKE_POLAR_FIGURES Export the stored polar experiments in the public figure style.
     % SPDX-License-Identifier: MIT
+    if nargin < 1, protocol = 'legacy'; end
+    protocol = validatestring(protocol, {'paper','legacy'});
     figDir = pwd;
+    if strcmp(protocol, 'paper')
+        trajectoryFile = 'Fig2';
+        gradientsFile = 'Fig3';
+    else
+        trajectoryFile = 'Fig1';
+        gradientsFile = 'Fig2';
+    end
     S = load('geometry.mat', 'geometry');
     o = S.geometry;
     S = load('bfgs.mat', 'bfgs');
     b = S.bfgs;
+    S = load('dfp.mat', 'dfp');
+    d = S.dfp;
+    if strcmp(protocol, 'paper')
+        assert(o.J == 32^3 && o.cycles == 100000, 'Expected the Section 6 orbit.');
+        for solver = {b, d}
+            record = solver{1};
+            assert(record.summary.J == o.J && record.summary.prefix_steps == 2*o.cycles ...
+                && isequal([record.trace.x1(1), record.trace.x2(1)], o.x(1,:)), ...
+                'The solver trace must use the same prescribed orbit as the trajectory.');
+        end
+    end
     theta = linspace(0, 2 * pi, 1200)';
     circle = [cos(theta), sin(theta)];
     axisLimit = max(1.2, ceil(10 * max(vecnorm(o.x, 2, 2))) / 10);
@@ -77,14 +97,10 @@ function make_polar_figures
     annotation(fig, 'arrow', [.3025, .3025], [.25417, .397], ...
         'Color', [.25, .25, .25], 'LineWidth', .55, ...
         'HeadLength', 4, 'HeadWidth', 4);
-    exportgraphics(fig, fullfile(figDir, 'Fig1.pdf'), 'ContentType', 'vector');
-    exportgraphics(fig, fullfile(figDir, 'Fig1.png'), 'Resolution', 300);
+    exportgraphics(fig, fullfile(figDir, [trajectoryFile '.pdf']), 'ContentType', 'vector');
+    exportgraphics(fig, fullfile(figDir, [trajectoryFile '.png']), 'Resolution', 300);
     close(fig);
 
-    S = load('dfp.mat', 'dfp');
-    d = S.dfp;
-    S = load('bfgs.mat', 'bfgs');
-    b = S.bfgs;
     fig = figure('Visible', 'off', 'Color', 'w', 'Units', 'inches', 'Position', [0, 0, 3.6, 2.5], ...
                  'PaperPositionMode', 'auto', 'Renderer', 'painters');
     ax = axes(fig, 'Position', [.19, .25, .71, .69]);
@@ -106,10 +122,10 @@ function make_polar_figures
     grid(ax, 'on');
     box(ax, 'on');
     ax.GridAlpha = .18;
-    exportgraphics(fig, fullfile(figDir, 'Fig2.pdf'), 'ContentType', 'vector');
-    exportgraphics(fig, fullfile(figDir, 'Fig2.png'), 'Resolution', 300);
+    exportgraphics(fig, fullfile(figDir, [gradientsFile '.pdf']), 'ContentType', 'vector');
+    exportgraphics(fig, fullfile(figDir, [gradientsFile '.png']), 'Resolution', 300);
     close(fig);
-    if all(arrayfun(@(k)isfile(sprintf('exponent_case_%d.mat',k)),1:3))
+    if strcmp(protocol, 'legacy') && all(arrayfun(@(k)isfile(sprintf('exponent_case_%d.mat',k)),1:3))
         make_scaling_figure;
     end
     completed = struct('created', true, 'software', version, ...
