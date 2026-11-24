@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Certify the Section 6 finite interpolant from its five stored binary64 columns.
+"""Certify the Section 5 finite interpolant from its five stored binary64 columns.
 
 Usage: python3 polar/certify_section6.py path/to/matched_finite.mat [--output FILE]
 The default output is certificate.json beside the input. Requires NumPy and h5py.

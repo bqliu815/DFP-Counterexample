@@ -1,8 +1,8 @@
 function run_polar_experiments(mode, outputDir)
 % SPDX-License-Identifier: MIT
 % RUN_POLAR_EXPERIMENTS Reproduce the prescribed polar DFP experiments.
-%   'paper' and 'all' reproduce the two Section 6 figures from a single orbit.
-%   'figures' and 'certify' use the saved Section 6 data in outputDir.
+%   'paper' and 'all' reproduce the two Section 5 figures from a single orbit.
+%   'figures' and 'certify' use the saved Section 5 data in outputDir.
 %   'legacy', 'legacy-figures', 'legacy-certify', 'scales', and 'wolfe'
 %   select the earlier protocol or its individual stages.
 if nargin < 1, mode = 'all'; end

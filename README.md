@@ -1,6 +1,6 @@
 # DFP-Counterexample
 
-MATLAB code and data for *A counterexample to global convergence of classical DFP under the standard strong Wolfe conditions*, by Benqi Liu, Zichen Wang, Zaiwen Wen, Yaxiang Yuan, and Liwei Zhang. The experiments below follow Section 6 of the revised manuscript. The first arXiv version describes an earlier construction. [Preprint](https://arxiv.org/abs/2608.21708)
+MATLAB code and data for *A counterexample to global convergence of classical DFP under the standard strong Wolfe conditions*, by Benqi Liu, Zichen Wang, Zaiwen Wen, Yaxiang Yuan, and Liwei Zhang. The experiments below follow Section 5 of the revised manuscript. The first arXiv version describes an earlier construction. [Preprint](https://arxiv.org/abs/2608.21708)
 
 ## Figures 2 and 3
 
@@ -18,7 +18,7 @@ The DFP steps in Figure 2 are prescribed by the construction. Figure 3 measures 
 
 ## Reproduce the figures
 
-The archive contains the prescribed points, the solver traces, the Hessian certificate, and the figures. To inspect the recorded runs directly, open the PDFs or the solver CSVs. [Download the Section 6 data](https://github.com/bqliu815/DFP-Counterexample/releases/download/section6-matched-data/DFP-Section6-data.zip)
+The archive contains the prescribed points, the solver traces, the Hessian certificate, and the figures. To inspect the recorded runs directly, open the PDFs or the solver CSVs. [Download the Section 5 data](https://github.com/bqliu815/DFP-Counterexample/releases/download/section6-matched-data/DFP-Section6-data.zip)
 
 To repeat the experiments, open the repository root in MATLAB and run:
 

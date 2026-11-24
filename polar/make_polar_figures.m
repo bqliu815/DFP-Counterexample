@@ -18,7 +18,7 @@ function make_polar_figures(protocol)
     S = load('dfp.mat', 'dfp');
     d = S.dfp;
     if strcmp(protocol, 'paper')
-        assert(o.J == 32^3 && o.cycles == 100000, 'Expected the Section 6 orbit.');
+        assert(o.J == 32^3 && o.cycles == 100000, 'Expected the Section 5 orbit.');
         for solver = {b, d}
             record = solver{1};
             assert(record.summary.J == o.J && record.summary.prefix_steps == 2*o.cycles ...

@@ -1,8 +1,8 @@
-# Reproducing Section 6
+# Reproducing Section 5
 
 ## Use the recorded data
 
-Extract the ZIP into a directory of your choice. It contains the prescribed orbit, the interpolation data, the two solver traces, the Hessian certificate, and the figures. [Download the Section 6 data](https://github.com/bqliu815/DFP-Counterexample/releases/download/section6-matched-data/DFP-Section6-data.zip)
+Extract the ZIP into a directory of your choice. It contains the prescribed orbit, the interpolation data, the two solver traces, the Hessian certificate, and the figures. [Download the Section 5 data](https://github.com/bqliu815/DFP-Counterexample/releases/download/section6-matched-data/DFP-Section6-data.zip)
 
 To redraw the figures, start MATLAB in the repository root and point it to the directory that contains `geometry.mat`, `bfgs.mat`, and `dfp.mat`. For example, if you extracted the archive into `results/recorded`, run:
 
@@ -26,7 +26,7 @@ The `paper` and `all` modes each generate the data, certificate, and both figure
 
 ### Figure 2. Prescribed DFP and MATLAB BFGS
 
-The numerical example uses the family of Section 4. The Hessian Hölder exponent is $\beta=1/2$, the angular coefficients are $\bar\delta_{\mathrm E}=4\pi/9$ and $\bar\delta_{\mathrm O}=2\pi/9$, and $\nu_*=1.03\bar\delta_{\mathrm O}$. Starting at $j_0=32^3$, the code uses the integrated angular increments in (82) over 100,000 two-step cycles and reconstructs the preceding radii from their ratios with the terminal radius fixed to one. The resulting 200,000 prescribed steps pass the strong Wolfe checks with parameters $(1/4,3/4)$ and tolerance $10^{-12}$. The concrete analytic example in Proposition 4 uses $(1/4,1/2)$.
+The numerical example uses the family of Section 3. The Hessian Hölder exponent is $\beta=1/2$, the angular coefficients are $\bar\delta_{\mathrm E}=4\pi/9$ and $\bar\delta_{\mathrm O}=2\pi/9$, and $\nu_*=1.03\bar\delta_{\mathrm O}$. Starting at $j_0=32^3$, the code uses the integrated angular increments in (82) over 100,000 two-step cycles and reconstructs the preceding radii from their ratios with the terminal radius fixed to one. The resulting 200,000 prescribed steps pass the strong Wolfe checks with parameters $(1/4,3/4)$ and tolerance $10^{-12}$. The concrete analytic example in Theorem 4 uses $(1/4,1/2)$.
 
 The objective interpolates all 200,001 sites before either solver runs. Its baseline is $\|x\|^2/2$. At site $x_k$, the gradient correction is $(\zeta_k-1)x_k$, supported in a disk whose radius is 0.24 times the nearest-neighbor distance. Figure 2(a) shows the prescribed orbit and Figure 2(b) shows the accepted BFGS iterates on that objective. The dashed circle in each panel has radius one.
 

@@ -1,7 +1,7 @@
 function outDir = run_experiments(mode, outDir)
 % RUN_EXPERIMENTS Reproduce the polar DFP counterexample experiments.
-%   'paper' or 'all': reproduce Section 6, Figures 2 and 3, and the certificate.
-%   'figures' and 'certify' reuse the Section 6 data. Default: 'smoke'.
+%   'paper' or 'all': reproduce Section 5, Figures 2 and 3, and the certificate.
+%   'figures' and 'certify' reuse the Section 5 data. Default: 'smoke'.
 %   Earlier experiments: 'legacy', 'legacy-figures', 'legacy-certify', 'scales', 'wolfe'.
 % SPDX-License-Identifier: MIT
 if nargin < 1, mode = 'smoke'; end

@@ -1,5 +1,5 @@
 function run_section6(mode)
-% RUN_SECTION6 Generate or reuse the Section 6 data in the working directory.
+% RUN_SECTION6 Generate or reuse the Section 5 data in the working directory.
 % SPDX-License-Identifier: MIT
 fullRun = ismember(mode, {'paper', 'all'});
 drawFigures = fullRun || strcmp(mode, 'figures');
